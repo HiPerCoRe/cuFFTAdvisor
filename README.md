@@ -22,4 +22,4 @@ Simply run `make` in the root directory. Make sure that you have NVCC and Cuda l
 `./build/cuFFTAdvisor -find 20 -x 445105 -n 5 --inPlaceOnly --complexOnly --doubleOnly --forwardOnly`
 
 ## Known limitations
-Currently supports only Cuda v.8.
+Internal heuristics is based on Cuda v.8, so it might not be very accurate for other versions.
