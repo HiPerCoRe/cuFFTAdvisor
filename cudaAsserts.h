@@ -53,7 +53,7 @@ static inline const char *_cudaGetErrorEnum(cufftResult error) {
 
     case CUFFT_NO_WORKSPACE:
       return "CUFFT_NO_WORKSPACE";
-
+#if CUDART_VERSION > 7050
     case CUFFT_NOT_IMPLEMENTED:
       return "CUFFT_NOT_IMPLEMENTED";
 
@@ -62,6 +62,7 @@ static inline const char *_cudaGetErrorEnum(cufftResult error) {
 
     case CUFFT_NOT_SUPPORTED:
       return "CUFFT_NOT_SUPPORTED";
+#endif
   }
 
   return "<unknown>";
