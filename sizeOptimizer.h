@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include <vector>
+#include <map>
 #include "benchmarker.h"
 #include "generalTransform.h"
 #include "transformGenerator.h"
@@ -22,6 +23,16 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
+
+    bool operator < (const Polynom& cmp) const
+    {
+        return (value < cmp.value);
+    }
+
+    bool operator > (const Polynom& cmp) const
+    {
+        return (value > cmp.value);
+    }
   };
 
   struct valueComparator {
@@ -56,6 +67,7 @@ class SizeOptimizer {
 
   int getInvocations(Polynom &poly, bool isFloat);
   int getInvocationsV8(Polynom &poly, bool isFloat);
+  std::vector<Polynom> *cutN(std::vector<Polynom>* polys , size_t nBest);
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
   std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);

@@ -1,4 +1,5 @@
 #include "sizeOptimizer.h"
+#include <map>
 
 namespace cuFFTAdvisor {
 
@@ -13,7 +14,7 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
       log_5(1.0 / std::log(5)),
       log_7(1.0 / std::log(7)) {
   if (Tristate::BOTH == tr.isFloat) {
-    // if user is not sure if he/she needs double, then he/she doesn't need it
+    // if user is not sure if they needs double, then they doesn't need it
     tr.isFloat = Tristate::TRUE;
   }
 
@@ -166,12 +167,20 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           int maxPercIncrease,
                                                           bool squareOnly,
                                                           bool crop) {
+
+  bool rank = (tr.Z != 1 && tr.Y != 1 && tr.X != 1); //rank define if it is a 3D signal or not
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
-  std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
+  std::set<Polynom, valueComparator> *recPolysX;
   std::set<Polynom, valueComparator> *recPolysY;
   std::set<Polynom, valueComparator> *recPolysZ;
+
+  if(!rank){
+    recPolysX = filterOptimal(polysX, crop);
+  }else{
+    polysX = cutN(polysX, nBest);
+  }
 
   if ((tr.X == tr.Y)
       || (squareOnly && (tr.Y != 1))) {
@@ -179,7 +188,11 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     recPolysY = recPolysX;
   } else {
     polysY = generatePolys(tr.Y, tr.isFloat, crop);
-    recPolysY = filterOptimal(polysY, crop);
+    if(!rank){
+      recPolysY = filterOptimal(polysY, crop);
+    }else{
+      polysY = cutN(polysY, nBest);
+    }
   }
 
   if ((tr.X == tr.Z)
@@ -191,43 +204,131 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     recPolysZ = recPolysY;
   } else {
     polysZ = generatePolys(tr.Z, tr.isFloat, crop);
-    recPolysZ = filterOptimal(polysZ, crop);
+    if(!rank){
+      recPolysZ = filterOptimal(polysZ, crop);
+    }else{
+      polysZ = cutN(polysZ, nBest);
+    }
   }
+
 
   size_t minSize = getMinSize(tr, maxPercIncrease, crop);
   size_t maxSize = getMaxSize(tr, maxPercIncrease, squareOnly, crop);
 
   std::vector<GeneralTransform> *result = new std::vector<GeneralTransform>;
-  size_t found = 0;
-  for (auto& x : *recPolysX) {
-    for (auto& y : *recPolysY) {
-      if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
-      size_t xy = x.value * y.value;
-      if (xy > maxSize)
-        break;  // polynoms are sorted by size, we're already above the limit
-      for (auto& z : *recPolysZ) {
-        if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
-        size_t xyz = xy * z.value;
-        if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
-          // we can take nbest only, as others very probably won't be faster
-          found++;
-          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
-          result->push_back(t);
+  if(!rank){
+    size_t found = 0;
+    for (auto& x : *recPolysX) {
+      for (auto& y : *recPolysY) {
+        if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
+        size_t xy = x.value * y.value;
+        if (xy > maxSize)
+          break;  // polynoms are sorted by size, we're already above the limit
+        for (auto& z : *recPolysZ) {
+          if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
+          size_t xyz = xy * z.value;
+          if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
+            // we can take nbest only, as others very probably won't be faster
+            found++;
+            GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+            result->push_back(t);
+          }
         }
       }
     }
+  }else{
+    //Definition of the max performence possible
+    Polynom minimunX = polysX->at(0);
+    for (size_t i = 1; i < polysX->size(); i++) {
+      if(polysX->at(i).invocations == 1){
+        minimunX = polysX->at(i);
+        break;
+      }
+      if(polysX->at(i).invocations < minimunX.invocations){
+        minimunX = polysX->at(i);
+      }
+    }
+
+    Polynom minimunY = polysY->at(0);
+    for (size_t i = 1; i < polysY->size(); i++) {
+      if(polysY->at(i).invocations == 1){
+        minimunY = polysY->at(i);
+        break;
+      }
+      if(polysY->at(i).invocations < minimunY.invocations){
+        minimunY = polysY->at(i);
+      }
+    }
+
+    Polynom minimunZ = polysZ->at(0);
+    for (size_t i = 1; i < polysZ->size(); i++) {
+      if(polysZ->at(i).invocations == 1){
+        minimunZ = polysZ->at(i);
+        break;
+      }
+      if(polysZ->at(i).invocations < minimunZ.invocations){
+        minimunZ = polysZ->at(i);
+      }
+    }
+
+
+    Transform transfo = Transform(0, minimunX.value, minimunY.value, minimunZ.value, 1, Tristate::FALSE,
+                      Tristate::TRUE, Tristate::BOTH, Tristate::FALSE, false);
+    float maxPerfTime = Benchmarker::benchmark(&transfo)->execTimeMS;
+
+    //Add the less incovation less padding transformation
+    GeneralTransform t(minimunX.value, minimunY.value, minimunZ.value, tr);
+
+    result->push_back(t);
+
+    //Add the transformation with the less padding possible
+    size_t found = 0;
+    int i = 0;
+    for (Polynom x : *polysX) {
+      for (Polynom y : *polysY) {
+        if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
+        size_t xy = x.value * y.value;
+        if (xy > maxSize)
+          break;  // polynoms are sorted by size, we're already above the limit
+        for (Polynom z : *polysZ) {
+          i++;
+          if (Benchmarker::benchmark(new Transform(0, x.value, y.value, z.value, 1, Tristate::FALSE,
+              Tristate::TRUE, Tristate::BOTH, Tristate::FALSE, false))->execTimeMS > maxPerfTime
+              && found > nBest){
+            break;
+          }
+          if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
+          size_t xyz = xy * z.value;
+          if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
+            // we can take nbest only, as others very probably won't be faster
+            found++;
+            GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+
+            result->push_back(t);
+
+          }
+        }
+      }
+    }
+
   }
 
-  if (polysZ != polysY) {
+  if ((polysZ != polysY) && (polysZ != polysX)) {
     delete polysZ;
-    delete recPolysZ;
+    if (!rank){
+      delete recPolysZ;
+    }
   }
   if (polysY != polysX) {
     delete polysY;
-    delete recPolysY;
+    if (!rank){
+      delete recPolysY;
+    }
   }
   delete polysX;
-  delete recPolysX;
+  if (!rank){
+    delete recPolysX;
+  }
   return result;
 }
 
@@ -316,6 +417,18 @@ std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
   return result;
 }
 
+std::vector<SizeOptimizer::Polynom> *SizeOptimizer::cutN(std::vector<SizeOptimizer::Polynom>* polys, size_t nBest){
+  //This function return the n smaller polynom of the vector
+  //It is use to limit the nomber of trqnsformation created
+  std::sort (polys->begin(), polys->end());
+  if(polys->size() > nBest){
+    while(polys->size() > nBest){
+      polys->pop_back();
+    }
+  }
+  return polys;
+}
+
 std::set<SizeOptimizer::Polynom, SizeOptimizer::valueComparator>
     *SizeOptimizer::filterOptimal(std::vector<SizeOptimizer::Polynom> *input,
     bool crop) {
@@ -338,7 +451,7 @@ std::set<SizeOptimizer::Polynom, SizeOptimizer::valueComparator>
       // update min kernel invocations needed
       minInv = tmp;
     }
-    if (closest.value > tmp.value) {
+    if (closest > tmp) {
       closest = tmp;
     }
   }
