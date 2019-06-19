@@ -5,7 +5,6 @@
 #include <cmath>
 #include <set>
 #include <vector>
-#include <map>
 #include "benchmarker.h"
 #include "generalTransform.h"
 #include "transformGenerator.h"
@@ -23,16 +22,6 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
-
-    bool operator < (const Polynom& cmp) const
-    {
-        return (value < cmp.value);
-    }
-
-    bool operator > (const Polynom& cmp) const
-    {
-        return (value > cmp.value);
-    }
   };
 
   struct valueComparator {

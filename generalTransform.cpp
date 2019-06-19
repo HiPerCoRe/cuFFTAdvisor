@@ -17,9 +17,7 @@ GeneralTransform::GeneralTransform(int device, int X, int Y, int Z, int N,
       isFloat(isFloat),
       isForward(isForward),
       isInPlace(isInPlace),
-      isReal(isReal) {
-        setRankInfo();
-      }
+      isReal(isReal) {}
 
 GeneralTransform::GeneralTransform(int X, int Y, int Z,
                                    const GeneralTransform &tr)
@@ -32,9 +30,7 @@ GeneralTransform::GeneralTransform(int X, int Y, int Z,
       isFloat(tr.isFloat),
       isForward(tr.isForward),
       isInPlace(tr.isInPlace),
-      isReal(tr.isReal) {
-        setRankInfo();
-      }
+      isReal(tr.isReal) {}
 
 GeneralTransform::GeneralTransform(const GeneralTransform &tr) { *this = tr; }
 
@@ -49,21 +45,7 @@ GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
     this->isFloat = tr.isFloat;
     this->isForward = tr.isForward;
     this->isInPlace = tr.isInPlace;
-    this->isReal = tr.isReal;
-    setRankInfo();
-  }
-  return *this;
-}
-
-void GeneralTransform::setRankInfo() {
-  rank = RANK_3D;
-  if (1 == Z) {
-    if (1 == Y) {
-      rank = RANK_1D;
-    } else {
-      rank = RANK_2D;
-    }
-  }
+    this->isReal = tr.isReareturn *this;
 }
 
 }  // namespace cuFFTAdvisor
