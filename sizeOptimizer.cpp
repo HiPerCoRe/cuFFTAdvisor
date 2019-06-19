@@ -168,7 +168,6 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           bool squareOnly,
                                                           bool crop) {
 
-  bool rank = (tr.Z != 1 && tr.Y != 1 && tr.X != 1); //rank define if it is a 3D signal or not
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
@@ -176,7 +175,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
   std::set<Polynom, valueComparator> *recPolysY;
   std::set<Polynom, valueComparator> *recPolysZ;
 
-  if(!rank){
+  if(tr.rank != 3){
     recPolysX = filterOptimal(polysX, crop);
   }else{
     polysX = cutN(polysX, nBest);
@@ -188,7 +187,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     recPolysY = recPolysX;
   } else {
     polysY = generatePolys(tr.Y, tr.isFloat, crop);
-    if(!rank){
+    if(tr.rank != 3){
       recPolysY = filterOptimal(polysY, crop);
     }else{
       polysY = cutN(polysY, nBest);
@@ -204,7 +203,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     recPolysZ = recPolysY;
   } else {
     polysZ = generatePolys(tr.Z, tr.isFloat, crop);
-    if(!rank){
+    if(tr.rank != 3){
       recPolysZ = filterOptimal(polysZ, crop);
     }else{
       polysZ = cutN(polysZ, nBest);
@@ -216,7 +215,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
   size_t maxSize = getMaxSize(tr, maxPercIncrease, squareOnly, crop);
 
   std::vector<GeneralTransform> *result = new std::vector<GeneralTransform>;
-  if(!rank){
+  if(tr.rank != 3){
     size_t found = 0;
     for (auto& x : *recPolysX) {
       for (auto& y : *recPolysY) {
@@ -315,18 +314,18 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
 
   if ((polysZ != polysY) && (polysZ != polysX)) {
     delete polysZ;
-    if (!rank){
+    if (tr.rank != 3){
       delete recPolysZ;
     }
   }
   if (polysY != polysX) {
     delete polysY;
-    if (!rank){
+    if (tr.rank != 3){
       delete recPolysY;
     }
   }
   delete polysX;
-  if (!rank){
+  if (tr.rank != 3){
     delete recPolysX;
   }
   return result;
