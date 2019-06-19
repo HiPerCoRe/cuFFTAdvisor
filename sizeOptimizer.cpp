@@ -221,20 +221,14 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
 
   if ((polysZ != polysY) && (polysZ != polysX)) {
     delete polysZ;
-    if (tr.rank != 3){
-      delete recPolysZ;
-    }
+    delete recPolysZ;
   }
   if (polysY != polysX) {
     delete polysY;
-    if (tr.rank != 3){
-      delete recPolysY;
-    }
+    delete recPolysY;
   }
   delete polysX;
-  if (tr.rank != 3){
-    delete recPolysX;
-  }
+  delete recPolysX;
   return result;
 }
 

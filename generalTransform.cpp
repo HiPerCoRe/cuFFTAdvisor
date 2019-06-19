@@ -45,7 +45,9 @@ GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
     this->isFloat = tr.isFloat;
     this->isForward = tr.isForward;
     this->isInPlace = tr.isInPlace;
-    this->isReal = tr.isReareturn *this;
+    this->isReal = tr.isReal;
+  }
+  return *this;
 }
 
 }  // namespace cuFFTAdvisor

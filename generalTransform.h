@@ -8,8 +8,6 @@ namespace cuFFTAdvisor {
 class GeneralTransform {
  public:
 
-  enum Rank { RANK_1D = 1, RANK_2D = 2, RANK_3D = 3 };
-
   GeneralTransform(int device, int X, int Y, int Z, int N,
                    Tristate::Tristate isBatched, Tristate::Tristate isFloat,
                    Tristate::Tristate isForward, Tristate::Tristate isInPlace,
@@ -34,10 +32,6 @@ class GeneralTransform {
   Tristate::Tristate isInPlace;  // otherwise out-of-place
   Tristate::Tristate isReal;     // otherwise C2C
 
-  /**
-   * Sets fields that describe rank (dimensionality)
-   */
-  void setRankInfo();
 };
 
 }  // namespace cuFFTAdvisor
