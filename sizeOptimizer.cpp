@@ -199,25 +199,25 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
   size_t maxSize = getMaxSize(tr, maxPercIncrease, squareOnly, crop);
 
   std::vector<GeneralTransform> *result = new std::vector<GeneralTransform>;
-    size_t found = 0;
-    for (auto& x : *recPolysX) {
-      for (auto& y : *recPolysY) {
-        if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
-        size_t xy = x.value * y.value;
-        if (xy > maxSize)
-          break;  // polynoms are sorted by size, we're already above the limit
-        for (auto& z : *recPolysZ) {
-          if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
-          size_t xyz = xy * z.value;
-          if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
-            // we can take nbest only, as others very probably won't be faster
-            found++;
-            GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
-            result->push_back(t);
-          }
+  size_t found = 0;
+  for (auto& x : *recPolysX) {
+    for (auto& y : *recPolysY) {
+      if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
+      size_t xy = x.value * y.value;
+      if (xy > maxSize)
+        break;  // polynoms are sorted by size, we're already above the limit
+      for (auto& z : *recPolysZ) {
+        if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
+        size_t xyz = xy * z.value;
+        if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
+          // we can take nbest only, as others very probably won't be faster
+          found++;
+          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+          result->push_back(t);
         }
       }
     }
+  }
 
   if ((polysZ != polysY) && (polysZ != polysX)) {
     delete polysZ;

@@ -7,7 +7,6 @@ namespace cuFFTAdvisor {
 
 class GeneralTransform {
  public:
-
   GeneralTransform(int device, int X, int Y, int Z, int N,
                    Tristate::Tristate isBatched, Tristate::Tristate isFloat,
                    Tristate::Tristate isForward, Tristate::Tristate isInPlace,
