@@ -13,7 +13,7 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
       log_5(1.0 / std::log(5)),
       log_7(1.0 / std::log(7)) {
   if (Tristate::BOTH == tr.isFloat) {
-    // if user is not sure if he/she needs double, then he/she doesn't need it
+    // if user is not sure if they needs double, then they doesn't need it
     tr.isFloat = Tristate::TRUE;
   }
 
@@ -166,6 +166,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           int maxPercIncrease,
                                                           bool squareOnly,
                                                           bool crop) {
+
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
@@ -218,7 +219,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     }
   }
 
-  if (polysZ != polysY) {
+  if ((polysZ != polysY) && (polysZ != polysX)) {
     delete polysZ;
     delete recPolysZ;
   }
