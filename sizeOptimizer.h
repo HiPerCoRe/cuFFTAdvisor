@@ -22,6 +22,16 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
+
+    bool operator < (const Polynom& cmp) const
+    {
+        return (value < cmp.value);
+    }
+
+    bool operator > (const Polynom& cmp) const
+    {
+        return (value > cmp.value);
+    }
   };
 
   struct valueComparator {
@@ -46,7 +56,7 @@ class SizeOptimizer {
                 bool allowTrans);
   std::vector<const Transform *> *optimize(size_t nBest, int maxPercIncrease,
                                            int maxMemMB, bool squareOnly,
-                                           bool crop);
+                                           bool crop, int rank);
 
  private:
   int getNoOfPrimes(Polynom &poly);

@@ -55,7 +55,7 @@ GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
   return *this;
 }
 
-void Transform::setRankInfo() {
+void GeneralTransform::setRankInfo() {
   rank = RANK_3D;
   if (1 == Z) {
     if (1 == Y) {
