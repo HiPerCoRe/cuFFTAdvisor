@@ -37,7 +37,7 @@ std::vector<Transform const *> *Advisor::recommend(
 
   SizeOptimizer optimizer(CudaVersion::V_8, tr, allowTransposition);
   std::vector<const Transform *> *result =
-      optimizer.optimize(howMany, maxSignalInc, maxMemory, squareOnly, crop);
+      optimizer.optimize(howMany, maxSignalInc, maxMemory, squareOnly, crop, tr.rank);
   resetDevice();
   return result;
 }

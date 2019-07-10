@@ -22,6 +22,16 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
+
+    bool operator < (const Polynom& cmp) const
+    {
+        return (value < cmp.value);
+    }
+
+    bool operator > (const Polynom& cmp) const
+    {
+        return (value > cmp.value);
+    }
   };
 
   struct valueComparator {
@@ -46,7 +56,7 @@ class SizeOptimizer {
                 bool allowTrans);
   std::vector<const Transform *> *optimize(size_t nBest, int maxPercIncrease,
                                            int maxMemMB, bool squareOnly,
-                                           bool crop);
+                                           bool crop, int rank);
 
  private:
   int getNoOfPrimes(Polynom &poly);
@@ -56,10 +66,14 @@ class SizeOptimizer {
 
   int getInvocations(Polynom &poly, bool isFloat);
   int getInvocationsV8(Polynom &poly, bool isFloat);
+  std::vector<Polynom> *cutN(std::vector<Polynom>* polys , size_t nBest);
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
   std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);
-  std::vector<GeneralTransform> *optimizeXYZ(GeneralTransform &tr, size_t nBest,
+  std::vector<GeneralTransform> *optimizeXYZ_3D(GeneralTransform &tr, size_t nBest,
+                                             int maxPercIncrease, bool squareOnly,
+                                             bool crop);
+  std::vector<GeneralTransform> *optimizeXYZ_1D_2D(GeneralTransform &tr, size_t nBest,
                                              int maxPercIncrease, bool squareOnly,
                                              bool crop);
   std::vector<const Transform *> *optimizeN(
