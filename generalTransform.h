@@ -33,7 +33,6 @@ class GeneralTransform {
   Tristate::Tristate isForward;  // otherwise inverse
   Tristate::Tristate isInPlace;  // otherwise out-of-place
   Tristate::Tristate isReal;     // otherwise C2C
-
   Rank rank;
 
 private:
