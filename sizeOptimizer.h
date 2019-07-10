@@ -66,7 +66,6 @@ class SizeOptimizer {
 
   int getInvocations(Polynom &poly, bool isFloat);
   int getInvocationsV8(Polynom &poly, bool isFloat);
-  std::vector<Polynom> *cutN(std::vector<Polynom>* polys , size_t nBest);
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
   std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);

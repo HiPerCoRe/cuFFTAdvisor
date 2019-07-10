@@ -181,8 +181,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
 
-  if ((tr.X == tr.Y)
-      || (squareOnly && (tr.Y != 1))) {
+  if ((tr.X == tr.Y) || squareOnly) {
     polysY = polysX;
   } else {
     polysY = generatePolys(tr.Y, tr.isFloat, crop);
@@ -194,8 +193,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
     polysY->resize(nBest);
   }
 
-  if ((tr.X == tr.Z)
-	  || (squareOnly && (tr.Z != 1))) {
+  if ((tr.X == tr.Z) || squareOnly) {
     polysZ = polysX;
   } else if (tr.Y == tr.Z) {
     polysZ = polysY;
@@ -216,12 +214,12 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
     size_t found = 0;
     for (auto& x : *polysX) {
       for (auto& y : *polysY) {
-        if (squareOnly && (x.value != y.value) && (y.value != 1)) continue;
+        if (squareOnly && (x.value != y.value)) continue;
         size_t xy = x.value * y.value;
         if (xy > maxSize)
           break;  // polynoms are sorted by size, we're already above the limit
         for (auto& z : *polysZ) {
-          if (squareOnly && (x.value != z.value) && (z.value != 1)) continue;
+          if (squareOnly && (x.value != z.value)) continue;
           size_t xyz = xy * z.value;
           if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
             // we can take nbest only, as others very probably won't be faster
