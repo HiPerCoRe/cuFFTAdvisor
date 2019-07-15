@@ -41,7 +41,7 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
     std::vector<GeneralTransform> *tmp;
-    if(rank == 3){
+    if(rank == GeneralTransform::RANK_3D){
       tmp = optimizeXYZ_3D(in, nBest, maxPercIncrease, squareOnly, crop);
     }else{
       tmp = optimizeXYZ_1D_2D(in, nBest, maxPercIncrease, squareOnly, crop);

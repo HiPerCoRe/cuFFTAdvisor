@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include "utils.h"
+#include "generalTransform.h"
 
 namespace cuFFTAdvisor {
 
@@ -12,8 +13,6 @@ class Transform {
  public:
   void print(FILE *stream = stdout) const;
   static void printHeader(FILE *stream = stdout);
-
-  enum Rank { RANK_1D = 1, RANK_2D = 2, RANK_3D = 3 };
 
   Transform(int device, int X, int Y, int Z, int N, bool isBatched,
             bool isFloat, bool isForward, bool isInPlace, bool isReal)
@@ -48,7 +47,7 @@ class Transform {
   bool isForward;  // otherwise inverse
 
   // derived
-  Rank rank;
+  GeneralTransform::Rank rank;
   size_t elems;  // of the transform // FIXME remove
   size_t inTypeSize;
   size_t outTypeSize;
