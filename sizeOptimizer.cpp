@@ -165,6 +165,16 @@ size_t SizeOptimizer::getMinSize(GeneralTransform &tr, int maxPercDecrease, bool
   return std::max(0.f, afterPercInc);
 }
 
+void SizeOptimizer::cutter(std::vector<Polynom>* polys, GeneralTransform &tr, bool crop, size_t nBest){
+  //This function generate Polynom, sort them resize the vector
+  if(crop){
+    std::sort (polys->begin(), polys->end(), std::greater<Polynom>());
+  }else{
+    std::sort (polys->begin(), polys->end(), std::less<Polynom>());
+  }
+  polys->resize(nBest);
+}
+
 std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &tr,
                                                           size_t nBest,
                                                           int maxPercIncrease,
@@ -172,12 +182,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
                                                           bool crop) {
 
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
-  if(!crop){
-    std::sort (polysX->begin(), polysX->end());
-  }else{
-    std::sort (polysX->begin(), polysX->end(), std::less<Polynom>());
-  }
-  polysX->resize(nBest);
+  cutter(polysX, tr, crop, nBest);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
 
@@ -185,12 +190,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
     polysY = polysX;
   } else {
     polysY = generatePolys(tr.Y, tr.isFloat, crop);
-    if(!crop){
-      std::sort (polysY->begin(), polysY->end());
-    }else{
-      std::sort (polysY->begin(), polysY->end(), std::less<Polynom>());
-    }
-    polysY->resize(nBest);
+    cutter(polysY, tr, crop, nBest);
   }
 
   if ((tr.X == tr.Z) || squareOnly) {
@@ -199,12 +199,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ_3D(GeneralTransform &t
     polysZ = polysY;
   } else {
     polysZ = generatePolys(tr.Z, tr.isFloat, crop);
-    if(!crop){
-      std::sort (polysZ->begin(), polysZ->end());
-    }else{
-      std::sort (polysZ->begin(), polysZ->end(), std::less<Polynom>());
-    }
-    polysZ->resize(nBest);
+    cutter(polysZ, tr, crop, nBest);
   }
 
   size_t minSize = getMinSize(tr, maxPercIncrease, crop);

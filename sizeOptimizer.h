@@ -69,6 +69,7 @@ class SizeOptimizer {
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
   std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);
+  void cutter(std::vector<Polynom>* polys, GeneralTransform &tr, bool crop, size_t nBest);
   std::vector<GeneralTransform> *optimizeXYZ_3D(GeneralTransform &tr, size_t nBest,
                                              int maxPercIncrease, bool squareOnly,
                                              bool crop);
