@@ -9,7 +9,6 @@ This tool is able to:
 ## Publication
 David Střelák and Jiří Filipovič. 2018. Performance analysis and autotuning setup of the cuFFT library. In Proceedings of the 2nd Workshop on AutotuniNg and aDaptivity AppRoaches for Energy efficient HPC Systems (ANDARE '18). ACM, New York, NY, USA, Article 1, 6 pages. DOI: https://doi.org/10.1145/3295816.3295817 
 
-https://dl.acm.org/citation.cfm?id=3295817
 
 ## Build
 Simply run `make` in the root directory. Make sure that you have NVCC and Cuda libraries in the PATH
