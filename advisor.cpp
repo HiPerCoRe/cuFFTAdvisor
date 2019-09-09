@@ -12,7 +12,6 @@ std::vector<BenchmarkResult const *> *Advisor::benchmark(
   generator.generate(device, x, y, z, n, isBatched, isFloat, isForward,
                      isInPlace, isReal, transforms);
   std::vector<BenchmarkResult const *> *result = benchmark(transforms);
-  resetDevice();
   return result;
 }
 
@@ -38,7 +37,6 @@ std::vector<Transform const *> *Advisor::recommend(
   SizeOptimizer optimizer(CudaVersion::V_8, tr, allowTransposition);
   std::vector<const Transform *> *result =
       optimizer.optimize(howMany, maxSignalInc, maxMemory, squareOnly, crop);
-  resetDevice();
   return result;
 }
 
@@ -55,7 +53,6 @@ std::vector<BenchmarkResult const *> *Advisor::find(
   std::vector<BenchmarkResult const *> *result = benchmark(*candidates);
   std::sort(result->begin(), result->end(), BenchmarkResult::execSort);
   delete candidates;
-  resetDevice();
   return result;
 }
 

@@ -87,6 +87,7 @@ int parseBenchmark(int argc, char **argv) {
 	  delete r;
 	}
     delete results;
+    cuFFTAdvisor::resetDevice();
   } catch (std::logic_error &e) {
     std::cout << e.what();
     return EXIT_FAILURE;
@@ -119,7 +120,7 @@ int parseRecommend(int argc, char **argv, int howMany) {
       delete r;
     }
     delete results;
-
+    cuFFTAdvisor::resetDevice();
   } catch (std::logic_error &e) {
     std::cout << e.what();
     return EXIT_FAILURE;
@@ -152,6 +153,7 @@ int parseFind(int argc, char **argv, int howMany) {
       delete r;
     }
     delete results;
+    cuFFTAdvisor::resetDevice();
   } catch (std::logic_error &e) {
     std::cout << e.what();
     return EXIT_FAILURE;
