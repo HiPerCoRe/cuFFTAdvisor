@@ -34,7 +34,7 @@ std::vector<Transform const *> *Advisor::recommend(
   GeneralTransform tr = GeneralTransform(device, x, y, z, n, isBatched, isFloat,
                                          isForward, isInPlace, isReal);
 
-  SizeOptimizer optimizer(CudaVersion::V_8, tr, allowTransposition);
+  SizeOptimizer optimizer(CudaVersion::V_12, tr, allowTransposition);
   std::vector<const Transform *> *result =
       optimizer.optimize(howMany, maxSignalInc, maxMemory, squareOnly, crop);
   return result;

@@ -48,6 +48,98 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
   return optimizeN(&preoptimized, maxMemMB, nBest);
 }
 
+void swapSizes(std::vector<GeneralTransform> &in) {
+    in.swapped2D = true;
+    in.originalX = in.X;
+    in.originalY = in.Y;
+    in.X = switchedY;
+    in.Y = switchedX;
+}
+
+bool swapSizes2D(GeneralTransform &in, SizeOptimizer::Polynom &x, SizeOptimizer::Polynom &y) {
+    int primesCountX = getNoOfPrimes(in.X);
+    int primesCountY = getNoOfPrimes(in.Y);
+
+    bool divisibleBy2X = in.X % 2 == 0;
+    bool divisibleBy2Y = in.Y % 2 == 0;
+    float differenceBetweenXY = (float)std::max(in.X, in.Y) / std::min(in.X, in.Y);
+    int kernelCountX = x.invocations;
+    int kernelCountY = y.invocations;
+
+    if (in.X <= in.Y) {
+        if (differenceBetweenXY <= 18) {
+            if (not divisibleBy2Y) {
+                if (primesCountY == 1) {
+                    swapSizes(in);
+                } else {
+                    in.swapped2D = false;
+                }
+            } else {
+                if (primesCountX == 1) {
+                    in.swapped2D = false;
+                } else {
+                    if (not divisibleBy2X) {
+                        swapSizes(in);
+                    } else {
+                        in.swapped2D = false;
+                    }
+                }
+            }
+        } else {
+            if (differenceBetweenXY <= 75000) {
+                if (not divisibleBy2Y) {
+                    in.swapped2D = false;
+                } else {
+                    swapSizes(in);
+                }
+            } else {
+                if (not divisibleBy2Y) {
+                    in.swapped2D = false;
+                } else {
+                    swapSizes(in);
+                }
+            }
+        }
+    }
+    else {
+        if (differenceBetweenXY <= 18) {
+            if (not divisibleBy2X) {
+                if (primesCountX == 1) {
+                    in.swapped2D = false;
+                } else {
+                    swapSizes(in);
+                }
+            } else {
+                if (primesCountY == 1) {
+                    swapSizes(in);
+                } else {
+                    if (not divisibleBy2Y) {
+                        in.swapped2D = false;
+                    } else {
+                        swapSizes(in);
+                    }
+                }
+            }
+        } else {
+            if (differenceBetweenXY <= 75000) {
+                if (not divisibleBy2X) {
+                    swapSizes(in);
+                } else {
+                    in.swapped2D = false;
+                }
+            } else {
+                if (not divisibleBy2X) {
+                    swapSizes(in);
+                } else {
+                    in.swapped2D = false;
+                }
+            }
+        }
+    }
+}
+
+
+
 bool SizeOptimizer::sizeSort(const Transform *l, const Transform *r) {
   if (l->N != r->N) return l->N > r->N;  // prefer bigger batches
   size_t lDims = l->X * l->Y * l->Z;
@@ -168,7 +260,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           bool crop) {
 
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
-  std::vector<Polynom> *polysY;
+  std::vector<Polynom> *polysY = generatePolys(tr.Y, tr.isFloat, crop);
   std::vector<Polynom> *polysZ;
   std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
   std::set<Polynom, valueComparator> *recPolysY;
@@ -213,6 +305,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
           // we can take nbest only, as others very probably won't be faster
           found++;
           GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+          swapSizes2D(t, x, y);
           result->push_back(t);
         }
       }
@@ -238,6 +331,23 @@ int SizeOptimizer::getNoOfPrimes(Polynom &poly) {
   if (poly.exponent3 != 0) counter++;
   if (poly.exponent5 != 0) counter++;
   if (poly.exponent7 != 0) counter++;
+  return counter;
+}
+
+int SizeOptimizer::getNoOfPrimes(long size) {
+  int counter = 0;
+  if (size % 2 != 0) {
+        counter++;
+  }
+  if (size % 3 != 0) {
+    counter++;
+  }
+  if (size % 5 != 0) {
+    counter++;
+  }
+  if (size % 7 != 0) {
+    counter++;
+  }
   return counter;
 }
 
@@ -271,12 +381,37 @@ int SizeOptimizer::getInvocationsV8(Polynom &poly, bool isFloat) {
   return result;
 }
 
+int SizeOptimizer::getInvocationsV12(Polynom &poly, bool isFloat) {
+  int result = 0;
+  if (isFloat) {
+    if (poly.value <= 5103)
+    {
+      return 1;
+    }
+    result += getInvocations(V12_RADIX_2_MAX_SP, poly.exponent2);
+    result += getInvocations(V12_RADIX_3_MAX_SP, poly.exponent3);
+    result += getInvocations(V12_RADIX_5_MAX_SP, poly.exponent5);
+    result += getInvocations(V12_RADIX_7_MAX_SP, poly.exponent7);
+  } else {
+    if (poly.value <= 2187)
+    {
+      return 1;
+    }
+    result += getInvocations(V12_RADIX_2_MAX_DP, poly.exponent2);
+    result += getInvocations(V12_RADIX_3_MAX_DP, poly.exponent3);
+    result += getInvocations(V12_RADIX_5_MAX_DP, poly.exponent5);
+    result += getInvocations(V12_RADIX_7_MAX_DP, poly.exponent7);
+  }
+  return result;
+}
+
+
 int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
   switch (version) {
     case (CudaVersion::V_8):
       return getInvocationsV8(poly, isFloat);
-    //	case (CudaVersion::V_9):
-    //		return getInvocationsV9(poly); // FIXME implement
+    case (CudaVersion::V_12):
+      return getInvocationsV12(poly); // FIXME implement
     default:
       throw std::domain_error("Unsupported version of CUDA");
   }
