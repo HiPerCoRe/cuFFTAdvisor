@@ -50,7 +50,12 @@ class SizeOptimizer {
 
  private:
   int getNoOfPrimes(Polynom &poly);
+  int getNoOfPrimes(long size);
   int getInvocations(int maxPower, size_t num);
+
+  void swapSizes(GeneralTransform &in);
+  bool swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y);
+
   std::vector<Triplet<int> *> optimize(GeneralTransform &tr, size_t nBest,
                                        int maxPercIncrease);
 

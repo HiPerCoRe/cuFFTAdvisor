@@ -49,15 +49,15 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
   return optimizeN(&preoptimized, maxMemMB, nBest);
 }
 
-void swapSizes(std::vector<GeneralTransform> &in) {
-    in.swapped2D = true;
-    in.originalX = in.X;
-    in.originalY = in.Y;
-    in.X = switchedY;
-    in.Y = switchedX;
+void SizeOptimizer::swapSizes(GeneralTransform &in) {
+  in.swapped2D = true;
+  in.originalX = in.X;
+  in.originalY = in.Y;
+  in.X = in.originalY;
+  in.Y = in.originalX;
 }
 
-bool swapSizes2D(GeneralTransform &in, SizeOptimizer::Polynom &x, SizeOptimizer::Polynom &y) {
+bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y) {
     int primesCountX = getNoOfPrimes(in.X);
     int primesCountY = getNoOfPrimes(in.Y);
 
@@ -137,6 +137,8 @@ bool swapSizes2D(GeneralTransform &in, SizeOptimizer::Polynom &x, SizeOptimizer:
             }
         }
     }
+
+  return true;
 }
 
 
@@ -415,7 +417,7 @@ int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
     case (CudaVersion::V_8):
       return getInvocationsV8(poly, isFloat);
     case (CudaVersion::V_12):
-      return getInvocationsV12(poly); // FIXME implement
+      return getInvocationsV12(poly, isFloat);
     default:
       throw std::domain_error("Unsupported version of CUDA");
   }
