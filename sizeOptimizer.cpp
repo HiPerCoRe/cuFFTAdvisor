@@ -42,7 +42,7 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
     std::vector<GeneralTransform> *tmp =
-        optimizeXYZ(in, nBest, maxPercIncrease, squareOnly, crop);
+        optimizeXYZ(in, nBest, maxPercIncrease, disallowRotation, squareOnly, crop);
     preoptimized.insert(preoptimized.end(), tmp->begin(), tmp->end());
     delete tmp;
   }
