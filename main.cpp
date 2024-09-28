@@ -46,6 +46,9 @@ int printHelp() {
                "(swapping dimensions). Prohibited by default. Valid for "
                "'-find' only."
             << std::endl;
+  std::cout << "\t--disallowRotation : consider also rotation of X and Y axes "
+               "(swapping dimensions). Allowed by default."
+            << std::endl;
   std::cout << "\t--squareOnly : consider only square shapes "
                "(X dimension size will be used as a starting point). "
                "Incompatible with --allowTransposition."
@@ -109,7 +112,8 @@ int parseRecommend(int argc, char **argv, int howMany) {
             howMany, parser.device, parser.x, parser.y, parser.z, parser.n,
             parser.isBatched, parser.isFloat, parser.isForward,
             parser.isInPlace, parser.isReal, parser.maxSignalInc,
-            parser.maxMemMB, parser.allowTransposition, parser.squareOnly,
+            parser.maxMemMB, parser.disallowRotation,
+            parser.allowTransposition, parser.squareOnly,
             parser.crop);
 
     cuFFTAdvisor::Transform::printHeader(stdout);
@@ -142,8 +146,8 @@ int parseFind(int argc, char **argv, int howMany) {
                                     parser.isFloat, parser.isForward,
                                     parser.isInPlace, parser.isReal,
                                     parser.maxSignalInc, parser.maxMemMB,
-                                    parser.allowTransposition, parser.squareOnly,
-                                    parser.crop);
+                                    parser.disallowRotation, parser.allowTransposition,
+                                    parser.squareOnly, parser.crop);
 
     cuFFTAdvisor::BenchmarkResult::printHeader(stdout);
     std::cout << std::endl;

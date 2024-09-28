@@ -4,6 +4,7 @@ namespace cuFFTAdvisor {
 
 void Validator::validate(int x, int y, int z, int n, int device,
                          int maxSignalInc, int maxMemMB,
+                         bool disallowRotation,
                          bool allowTrans, bool squareOnly) {
   validate(x, y, z, n, device);
 

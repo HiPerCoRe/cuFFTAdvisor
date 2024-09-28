@@ -21,6 +21,7 @@ InputParser::InputParser(int argc, char **argv) {
   maxSignalInc = parseMaxSignalInc();
   maxMemMB = parseMaxMemMB();
   allowTransposition = parseAllowTransposition();
+  disallowRotation = parseDisallowRotation();
   squareOnly = parseSquareOnly();
   crop = parseCrop();
 }
@@ -188,6 +189,16 @@ void InputParser::parseDevice() {
 bool InputParser::parseAllowTransposition() {
   for (int i = 0; i < argc; i++) {
     if (safeEquals(argv[i], "--allowTransposition")) {
+      argv[i] = NULL;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool InputParser::parseDisallowRotation() {
+  for (int i = 0; i < argc; i++) {
+    if (safeEquals(argv[i], "--disallowRotation")) {
       argv[i] = NULL;
       return true;
     }

@@ -36,6 +36,7 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
 std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
                                                         int maxPercIncrease,
                                                         int maxMemMB,
+                                                        bool disallowRotation,
                                                         bool squareOnly,
                                                         bool crop) {
   std::vector<GeneralTransform> preoptimized;
@@ -256,6 +257,7 @@ size_t SizeOptimizer::getMinSize(GeneralTransform &tr, int maxPercDecrease, bool
 std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           size_t nBest,
                                                           int maxPercIncrease,
+                                                          bool disallowRotation,
                                                           bool squareOnly,
                                                           bool crop) {
 
@@ -305,7 +307,9 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
           // we can take nbest only, as others very probably won't be faster
           found++;
           GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
-          swapSizes2D(t, x, y);
+          if (!disallowRotation) {
+            swapSizes2D(t, x, y);
+          }
           result->push_back(t);
         }
       }

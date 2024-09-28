@@ -25,6 +25,7 @@ class Advisor {
       Tristate::Tristate isInPlace = Tristate::TRUE,
       Tristate::Tristate isReal = Tristate::TRUE, int maxSignalInc = INT_MAX,
       int maxMemory = INT_MAX,
+      bool disallowRotation = false,
       bool allowTransposition = false,
       bool squareOnly = false,
       bool crop = false);
@@ -37,6 +38,7 @@ class Advisor {
       Tristate::Tristate isInPlace = Tristate::TRUE,
       Tristate::Tristate isReal = Tristate::TRUE, int maxSignalInc = INT_MAX,
       int maxMemory = INT_MAX,
+      bool disallowRotation = false,
       bool allowTransposition = false,
       bool squareOnly = false,
       bool crop = false);
