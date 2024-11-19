@@ -11,7 +11,8 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
       log_2(1.0 / std::log(2)),
       log_3(1.0 / std::log(3)),
       log_5(1.0 / std::log(5)),
-      log_7(1.0 / std::log(7)) {
+      log_7(1.0 / std::log(7)),
+      log_11(1.0 / std::log(11)) {
   if (Tristate::BOTH == tr.isFloat) {
     // if user is not sure if they needs double, then they doesn't need it
     tr.isFloat = Tristate::TRUE;
@@ -337,6 +338,7 @@ int SizeOptimizer::getNoOfPrimes(Polynom &poly) {
   if (poly.exponent3 != 0) counter++;
   if (poly.exponent5 != 0) counter++;
   if (poly.exponent7 != 0) counter++;
+  if (poly.exponent11 != 0) counter++;
   return counter;
 }
 
@@ -352,6 +354,9 @@ int SizeOptimizer::getNoOfPrimes(long size) {
     counter++;
   }
   if (size % 7 != 0) {
+    counter++;
+  }
+  if (size % 11 != 0) {
     counter++;
   }
   return counter;
@@ -390,7 +395,7 @@ int SizeOptimizer::getInvocationsV8(Polynom &poly, bool isFloat) {
 int SizeOptimizer::getInvocationsV12(Polynom &poly, bool isFloat) {
   int result = 0;
   if (isFloat) {
-    if (poly.value <= 5103)
+    if (poly.value <= V12_REGULAR_MAX_SP)
     {
       return 1;
     }
@@ -398,8 +403,9 @@ int SizeOptimizer::getInvocationsV12(Polynom &poly, bool isFloat) {
     result += getInvocations(V12_RADIX_3_MAX_SP, poly.exponent3);
     result += getInvocations(V12_RADIX_5_MAX_SP, poly.exponent5);
     result += getInvocations(V12_RADIX_7_MAX_SP, poly.exponent7);
+    result += getInvocations(V12_RADIX_11_MAX_SP, poly.exponent11);
   } else {
-    if (poly.value <= 2187)
+    if (poly.value <= V12_REGULAR_MAX_DP)
     {
       return 1;
     }
@@ -407,6 +413,7 @@ int SizeOptimizer::getInvocationsV12(Polynom &poly, bool isFloat) {
     result += getInvocations(V12_RADIX_3_MAX_DP, poly.exponent3);
     result += getInvocations(V12_RADIX_5_MAX_DP, poly.exponent5);
     result += getInvocations(V12_RADIX_7_MAX_DP, poly.exponent7);
+    result += getInvocations(V12_RADIX_11_MAX_DP, poly.exponent11);
   }
   return result;
 }
@@ -431,25 +438,37 @@ std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
   size_t maxPow3 = std::ceil(std::log(max) * log_3);
   size_t maxPow5 = std::ceil(std::log(max) * log_5);
   size_t maxPow7 = std::ceil(std::log(max) * log_7);
+  size_t maxPow11 = std::ceil(std::log(max) * log_11);
 
-  for (size_t a = 1; a <= maxPow2; a++) {  // we want at least one multiple of two
+  for (size_t a = 0; a <= maxPow2; a++) {  // we want at least one multiple of two
     for (size_t b = 0; b <= maxPow3; b++) {
       for (size_t c = 0; c <= maxPow5; c++) {
         for (size_t d = 0; d <= maxPow7; d++) {
-          size_t value = std::pow(2, a) * std::pow(3, b)
-            * std::pow(5, c) * std::pow(7, d);
-          bool incCond = !crop && ((value >= num) && (value <= max));
-          bool decrCond = crop && (value <= num);
-          if (incCond || decrCond) {
-            Polynom p;
-            p.value = value;
-            p.exponent2 = a;
-            p.exponent3 = b;
-            p.exponent5 = c;
-            p.exponent7 = d;
-            p.invocations = getInvocations(p, isFloat);
-            p.noOfPrimes = getNoOfPrimes(p);
-            result->push_back(p);
+          for (size_t e = 0; d <= maxPow11; d++) {
+            size_t value = std::pow(2, a) * std::pow(3, b)
+                           * std::pow(5, c) * std::pow(7, d)
+                           * std::pow(11, e);
+
+            if (a == 0) {
+              if ((isFloat && value > V12_REGULAR_MAX_SP) || (!isFloat && value > V12_REGULAR_MAX_DP)) {
+                continue;
+              }
+            }
+
+            bool incCond = !crop && ((value >= num) && (value <= max));
+            bool decrCond = crop && (value <= num);
+            if (incCond || decrCond) {
+              Polynom p;
+              p.value = value;
+              p.exponent2 = a;
+              p.exponent3 = b;
+              p.exponent5 = c;
+              p.exponent7 = d;
+              p.exponent11 = e;
+              p.invocations = getInvocations(p, isFloat);
+              p.noOfPrimes = getNoOfPrimes(p);
+              result->push_back(p);
+            }
           }
         }
       }

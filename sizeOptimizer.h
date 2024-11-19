@@ -22,6 +22,7 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
+    size_t exponent11;
   };
 
   struct valueComparator {
@@ -88,6 +89,7 @@ class SizeOptimizer {
   const double log_3;
   const double log_5;
   const double log_7;
+  const double log_11
 
   static const int V8_2D_REGULAR_MAX_SP = 0;
   static const int V8_RADIX_2_MAX_SP = 10;
@@ -102,17 +104,19 @@ class SizeOptimizer {
   static const int V8_RADIX_5_MAX_DP = 3;
   static const int V8_RADIX_7_MAX_DP = 3;
 
-  static const int V12_2D_REGULAR_MAX_SP = 5103;
+  static const int V12_REGULAR_MAX_SP = 5103;
   static const int V12_RADIX_2_MAX_SP = 11;
   static const int V12_RADIX_3_MAX_SP = 7;
   static const int V12_RADIX_5_MAX_SP = 4;
   static const int V12_RADIX_7_MAX_SP = 3;
+  static const int V12_RADIX_11_MAX_SP = 3;
 
-  static const int V12_2D_REGULAR_MAX_DP = 2187;
+  static const int V12_REGULAR_MAX_DP = 2187;
   static const int V12_RADIX_2_MAX_DP = 11;
   static const int V12_RADIX_3_MAX_DP = 6;
   static const int V12_RADIX_5_MAX_DP = 5;
   static const int V12_RADIX_7_MAX_DP = 4;
+  static const int V12_RADIX_11_MAX_DP = 4;
   static const Polynom UNIT;
 };
 
