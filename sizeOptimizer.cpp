@@ -149,9 +149,9 @@ bool SizeOptimizer::sizeSort(const Transform *l, const Transform *r) {
   size_t lDims = l->X * l->Y * l->Z;
   size_t rDims = r->X * r->Y * r->Z;
   if (lDims != rDims) return lDims < rDims;
-  if (l->Z != r->Z) return l->Z < r->Z;
+  if (l->X != r->X) return l->X < r->X;
   if (l->Y != r->Y) return l->Y < r->Y;
-  return l->X < r->X;
+  return l->Z < r->Z;
 }
 
 bool SizeOptimizer::perfSort(const Transform *l, const Transform *r) {
@@ -444,7 +444,7 @@ std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
     for (size_t b = 0; b <= maxPow3; b++) {
       for (size_t c = 0; c <= maxPow5; c++) {
         for (size_t d = 0; d <= maxPow7; d++) {
-          for (size_t e = 0; d <= maxPow11; d++) {
+          for (size_t e = 0; e <= maxPow11; e++) {
             size_t value = std::pow(2, a) * std::pow(3, b)
                            * std::pow(5, c) * std::pow(7, d)
                            * std::pow(11, e);

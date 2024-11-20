@@ -89,7 +89,7 @@ class SizeOptimizer {
   const double log_3;
   const double log_5;
   const double log_7;
-  const double log_11
+  const double log_11;
 
   static const int V8_2D_REGULAR_MAX_SP = 0;
   static const int V8_RADIX_2_MAX_SP = 10;
@@ -116,7 +116,7 @@ class SizeOptimizer {
   static const int V12_RADIX_3_MAX_DP = 6;
   static const int V12_RADIX_5_MAX_DP = 5;
   static const int V12_RADIX_7_MAX_DP = 4;
-  static const int V12_RADIX_11_MAX_DP = 4;
+  static const int V12_RADIX_11_MAX_DP = 3;
   static const Polynom UNIT;
 };
 
