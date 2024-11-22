@@ -59,15 +59,16 @@ void SizeOptimizer::swapSizes(GeneralTransform &in) {
 }
 
 bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y) {
-    int primesCountX = getNoOfPrimes(in.X);
-    int primesCountY = getNoOfPrimes(in.Y);
+  int primesCountX = getNoOfPrimes(in.X);
+  int primesCountY = getNoOfPrimes(in.Y);
 
-    bool divisibleBy2X = in.X % 2 == 0;
-    bool divisibleBy2Y = in.Y % 2 == 0;
-    float differenceBetweenXY = (float)std::max(in.X, in.Y) / std::min(in.X, in.Y);
-    int kernelCountX = x.invocations;
-    int kernelCountY = y.invocations;
+  bool divisibleBy2X = in.X % 2 == 0;
+  bool divisibleBy2Y = in.Y % 2 == 0;
+  float differenceBetweenXY = (float)std::max(in.X, in.Y) / std::min(in.X, in.Y);
+  int kernelCountX = x.invocations;
+  int kernelCountY = y.invocations;
 
+  /*
     if (in.X <= in.Y) {
         if (differenceBetweenXY <= 18) {
             if (not divisibleBy2Y) {
@@ -138,6 +139,77 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
             }
         }
     }
+    */
+  if (!divisibleBy2X) {
+    if (kernelCountX <= 1.5) {
+      if (in.X <= in.Y) {
+        if (!divisibleBy2Y) {
+          in.swapped2D = false;
+        } else {
+          if (differenceBetweenXY <= 35) {
+            swapSizes(in);
+          } else {
+            in.swapped2D = false;
+          }
+        }
+      } else {
+        swapSizes(in);
+      }
+    } else {
+      swapSizes(in);
+    }
+  } else {
+    if (kernelCountY <= 1.5) {
+      if (kernelCountX <= 1.5) {
+        if (!divisibleBy2Y) {
+          if (primesCountY <= 1.5) {
+            swapSizes(in);
+          } else {
+            in.swapped2D = false;
+          }
+        } else {
+          in.swapped2D = false;
+        }
+      } else {
+        if (primesCountY <= 1.5) {
+          if (differenceBetweenXY <= 35000) {
+            in.swapped2D = false;
+          } else {
+            swapSizes(in);
+          }
+        } else {
+          if (!divisibleBy2Y) {
+            if (differenceBetweenXY <= 10) {
+              in.swapped2D = false;
+            } else {
+              swapSizes(in);
+            }
+          } else {
+            swapSizes(in);
+          }
+        }
+      }
+    } else {
+      if (primesCountX <= 1.5) {
+        if (primesCountY <= 2.5) {
+          in.swapped2D = false;
+        } else {
+          if (kernelCountY <= 3.5) {
+            if (differenceBetweenXY <= 100000) {
+              in.swapped2D = false;
+            } else {
+              swapSizes(in);
+            }
+          } else {
+            swapSizes(in);
+          }
+        }
+      } else {
+        in.swapped2D = false;
+      }
+    }
+  }
+
 
   return true;
 }
