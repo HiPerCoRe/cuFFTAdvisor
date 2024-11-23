@@ -3,7 +3,7 @@
 namespace cuFFTAdvisor {
 
 const struct SizeOptimizer::Polynom SizeOptimizer::UNIT = {
-    .value = 1, 0, 0, 0, 0, 0, 0};
+    .value = 1, 0, 0, 0, 0, 0, 0, 0};
 
 SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
                              GeneralTransform &tr, bool allowTrans)
@@ -218,8 +218,18 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
 
 bool SizeOptimizer::sizeSort(const Transform *l, const Transform *r) {
   if (l->N != r->N) return l->N > r->N;  // prefer bigger batches
+
+  int lKernelCount = l->kernelInvocationX + l->kernelInvocationY + l->kernelInvocationZ;
+  int rKernelCount = r->kernelInvocationX + r->kernelInvocationY + r->kernelInvocationZ;
+
   size_t lDims = l->X * l->Y * l->Z;
   size_t rDims = r->X * r->Y * r->Z;
+
+  if (lKernelCount != rKernelCount) return lKernelCount < rKernelCount;
+  if (l->kernelInvocationX != r->kernelInvocationX) return l->kernelInvocationX < r->kernelInvocationX;
+  if (l->kernelInvocationY != r->kernelInvocationY) return l->kernelInvocationY < r->kernelInvocationY;
+  if (l->kernelInvocationZ != r->kernelInvocationZ) return l->kernelInvocationZ < r->kernelInvocationZ;
+
   if (lDims != rDims) return lDims < rDims;
   if (l->X != r->X) return l->X < r->X;
   if (l->Y != r->Y) return l->Y < r->Y;
@@ -245,6 +255,7 @@ bool SizeOptimizer::perfSort(const Transform *l, const Transform *r) {
 std::vector<const Transform *> *SizeOptimizer::optimizeN(
     std::vector<GeneralTransform> *transforms, size_t maxMem, size_t nBest) {
   std::vector<const Transform *> *result = new std::vector<const Transform *>();
+
   for (auto& gt : *transforms) {
     if (Tristate::isNot(gt.isBatched)) {
       collapse(gt, false, gt.N, maxMem, result);
@@ -253,6 +264,7 @@ std::vector<const Transform *> *SizeOptimizer::optimizeN(
       collapseBatched(gt, maxMem, result);
     }
   }
+
   std::sort(result->begin(), result->end(), perfSort);
   while (result->size() > nBest) {
     delete result->back();
@@ -301,6 +313,11 @@ bool SizeOptimizer::collapse(GeneralTransform &gt, bool isBatched, size_t N,
     size_t planSize = std::max(r.planSizeEstimateB, r.planSizeEstimate2B);
     size_t totalSizeBytes = r.transform->dataSizeB + planSize;
     size_t totalMB = std::ceil(toMB(totalSizeBytes));
+
+    t->kernelInvocationX = gt.kernelInvocationX;
+    t->kernelInvocationY = gt.kernelInvocationY;
+    t->kernelInvocationZ = gt.kernelInvocationZ;
+
     if (totalMB <= maxMemMB) {
       result->push_back(t);
       updated = true;
@@ -337,7 +354,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           bool crop) {
 
   std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
-  std::vector<Polynom> *polysY = generatePolys(tr.Y, tr.isFloat, crop);
+  std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
   std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
   std::set<Polynom, valueComparator> *recPolysY;
@@ -381,8 +398,8 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
         if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
           // we can take nbest only, as others very probably won't be faster
           found++;
-          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
-          if (!disallowRotation) {
+          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, x.invocations, y.invocations, z.invocations, tr);
+          if (!disallowRotation && t.Y != 1) {
             swapSizes2D(t, x, y);
           }
           result->push_back(t);
@@ -435,6 +452,8 @@ int SizeOptimizer::getNoOfPrimes(long size) {
 }
 
 int SizeOptimizer::getInvocations(int maxPower, size_t num) {
+  //return num % maxPower + (num % maxPower != 0 ? 1 : 0);
+
   int count = 0;
   while (0 != num) {
     for (size_t p = maxPower; p > 0; p--) {
@@ -581,7 +600,7 @@ std::set<SizeOptimizer::Polynom, SizeOptimizer::valueComparator>
   for (size_t i = 0; i < size; i++) {
     Polynom &tmp = input->at(i);
     if ((tmp.invocations <= (minInv.invocations + 2)) &&
-        (tmp.noOfPrimes <= 4)) {
+        (tmp.noOfPrimes <= 5)) {
       result->insert(tmp);
     }
   }

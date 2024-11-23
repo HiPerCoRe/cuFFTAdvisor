@@ -47,6 +47,10 @@ class Transform {
   bool isFloat;    // otherwise double
   bool isForward;  // otherwise inverse
 
+  int kernelInvocationX;
+  int kernelInvocationY;
+  int kernelInvocationZ;
+
   // derived
   Rank rank;
   size_t elems;  // of the transform // FIXME remove
