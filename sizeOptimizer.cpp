@@ -43,7 +43,7 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
     std::vector<GeneralTransform> *tmp =
-        optimizeXYZ(in, nBest, maxPercIncrease, disallowRotation, squareOnly, crop);
+        optimizeXYZ(in, nBest + 20, maxPercIncrease, disallowRotation, squareOnly, crop);
     preoptimized.insert(preoptimized.end(), tmp->begin(), tmp->end());
     delete tmp;
   }
@@ -303,7 +303,8 @@ bool SizeOptimizer::collapse(GeneralTransform &gt, bool isBatched, size_t N,
   std::vector<const Transform *> transforms;
   TransformGenerator::generate(gt.device, gt.X, gt.Y, gt.Z, N, isBatched,
                                gt.isFloat, gt.isForward, gt.isInPlace,
-                               gt.isReal, transforms);
+                               gt.isReal, gt.kernelInvocationX, gt.kernelInvocationY,
+                               gt.kernelInvocationZ, transforms);
 
   size_t noOfTransforms = transforms.size();
   for (size_t i = 0; i < noOfTransforms; i++) {
@@ -313,10 +314,6 @@ bool SizeOptimizer::collapse(GeneralTransform &gt, bool isBatched, size_t N,
     size_t planSize = std::max(r.planSizeEstimateB, r.planSizeEstimate2B);
     size_t totalSizeBytes = r.transform->dataSizeB + planSize;
     size_t totalMB = std::ceil(toMB(totalSizeBytes));
-
-    t->kernelInvocationX = gt.kernelInvocationX;
-    t->kernelInvocationY = gt.kernelInvocationY;
-    t->kernelInvocationZ = gt.kernelInvocationZ;
 
     if (totalMB <= maxMemMB) {
       result->push_back(t);
@@ -398,10 +395,16 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
         if ((found < nBest) && (xyz >= minSize) && (xyz <= maxSize)) {
           // we can take nbest only, as others very probably won't be faster
           found++;
-          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, x.invocations, y.invocations, z.invocations, tr);
+          GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+
           if (!disallowRotation && t.Y != 1) {
             swapSizes2D(t, x, y);
           }
+
+          t.kernelInvocationX = x.invocations;
+          t.kernelInvocationY = y.invocations;
+          t.kernelInvocationZ = z.invocations;
+
           result->push_back(t);
         }
       }

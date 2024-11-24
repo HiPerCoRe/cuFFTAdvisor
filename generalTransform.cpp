@@ -32,23 +32,6 @@ GeneralTransform::GeneralTransform(int X, int Y, int Z,
       isInPlace(tr.isInPlace),
       isReal(tr.isReal) {}
 
-GeneralTransform::GeneralTransform(int X, int Y, int Z,
-                                   int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
-                                   const GeneralTransform &tr)
-    : device(tr.device),
-      X(X),
-      Y(Y),
-      Z(Z),
-      N(tr.N),
-      isBatched(tr.isBatched),
-      isFloat(tr.isFloat),
-      isForward(tr.isForward),
-      isInPlace(tr.isInPlace),
-      isReal(tr.isReal),
-      kernelInvocationX(tr.kernelInvocationX),
-      kernelInvocationY(tr.kernelInvocationY),
-      kernelInvocationZ(tr.kernelInvocationZ) {}
-
 GeneralTransform::GeneralTransform(const GeneralTransform &tr) { *this = tr; }
 
 GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
@@ -63,6 +46,9 @@ GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
     this->isForward = tr.isForward;
     this->isInPlace = tr.isInPlace;
     this->isReal = tr.isReal;
+    this->kernelInvocationX = tr.kernelInvocationX;
+    this->kernelInvocationY = tr.kernelInvocationY;
+    this->kernelInvocationZ = tr.kernelInvocationZ;
   }
   return *this;
 }

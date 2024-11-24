@@ -16,24 +16,35 @@ class TransformGenerator {
                        Tristate::Tristate isInPlace, Tristate::Tristate isReal,
                        std::vector<Transform const *> &result);
 
+  static void generate(int device, int x, int y, int z, int n,
+                       Tristate::Tristate isBatched, Tristate::Tristate isFloat,
+                       Tristate::Tristate isForward,
+                       Tristate::Tristate isInPlace, Tristate::Tristate isReal,
+                       int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
+                       std::vector<Transform const *> &result);
+
   static void generate(int device, int x, int y, int z, int n, bool isBatched,
                        bool isFloat, bool isForward, bool isInPlace,
                        Tristate::Tristate isReal,
+                       int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
                        std::vector<Transform const *> &result);
 
   static void generate(int device, int x, int y, int z, int n, bool isBatched,
                        bool isFloat, bool isForward,
                        Tristate::Tristate isInPlace, Tristate::Tristate isReal,
+                       int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
                        std::vector<Transform const *> &result);
 
   static void generate(int device, int x, int y, int z, int n, bool isBatched,
                        bool isFloat, Tristate::Tristate isForward,
                        Tristate::Tristate isInPlace, Tristate::Tristate isReal,
+                       int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
                        std::vector<Transform const *> &result);
 
   static void generate(int device, int x, int y, int z, int n, bool isBatched,
                        Tristate::Tristate isFloat, Tristate::Tristate isForward,
                        Tristate::Tristate isInPlace, Tristate::Tristate isReal,
+                       int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ,
                        std::vector<Transform const *> &result);
 
   static void transpose(GeneralTransform &tr,

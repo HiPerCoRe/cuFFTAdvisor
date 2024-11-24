@@ -13,7 +13,6 @@ class GeneralTransform {
                    Tristate::Tristate isReal);
 
   GeneralTransform(int X, int Y, int Z, const GeneralTransform &tr);
-  GeneralTransform(int X, int Y, int Z, int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ, const GeneralTransform &tr);
   GeneralTransform(const GeneralTransform &tr);
   GeneralTransform &operator=(const GeneralTransform &tr);
 
