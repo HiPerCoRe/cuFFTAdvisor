@@ -27,6 +27,8 @@ class Advisor {
       int maxMemory = INT_MAX,
       bool disallowRotation = false,
       bool allowTransposition = false,
+      bool disallowSizeOptimization = false,
+      int countOfOptimizedDimensions = INT_MAX,
       bool squareOnly = false,
       bool crop = false);
 
@@ -40,6 +42,8 @@ class Advisor {
       int maxMemory = INT_MAX,
       bool disallowRotation = false,
       bool allowTransposition = false,
+      bool disallowSizeOptimization = false,
+      int countOfOptimizedDimensions = INT_MAX,
       bool squareOnly = false,
       bool crop = false);
 

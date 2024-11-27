@@ -27,16 +27,20 @@ std::vector<Transform const *> *Advisor::recommend(
     Tristate::Tristate isBatched, Tristate::Tristate isFloat,
     Tristate::Tristate isForward, Tristate::Tristate isInPlace,
     Tristate::Tristate isReal, int maxSignalInc, int maxMemory,
-    bool disallowRotation, bool allowTransposition, bool squareOnly, bool crop) {
+    bool disallowRotation, bool allowTransposition, bool disallowSizeOptimization,
+    int countOfOptimizedDimensions, bool squareOnly, bool crop) {
   Validator::validate(device);
   maxMemory = getMaxMemory(device, maxMemory);
-  Validator::validate(x, y, z, n, device, maxSignalInc, maxMemory, disallowRotation, allowTransposition, squareOnly);
+  Validator::validate(x, y, z, n, device, maxSignalInc, maxMemory,
+                      countOfOptimizedDimensions, allowTransposition, squareOnly);
   GeneralTransform tr = GeneralTransform(device, x, y, z, n, isBatched, isFloat,
                                          isForward, isInPlace, isReal);
 
   SizeOptimizer optimizer(CudaVersion::V_12, tr, allowTransposition);
   std::vector<const Transform *> *result =
-      optimizer.optimize(howMany, maxSignalInc, maxMemory, disallowRotation, squareOnly, crop);
+      optimizer.optimize(howMany, maxSignalInc, maxMemory, disallowRotation,
+                         disallowSizeOptimization, countOfOptimizedDimensions,
+                         squareOnly, crop);
   return result;
 }
 
@@ -45,11 +49,13 @@ std::vector<BenchmarkResult const *> *Advisor::find(
     Tristate::Tristate isBatched, Tristate::Tristate isFloat,
     Tristate::Tristate isForward, Tristate::Tristate isInPlace,
     Tristate::Tristate isReal, int maxSignalInc, int maxMemory,
-    bool disallowRotation, bool allowTransposition, bool squareOnly, bool crop) {
+    bool disallowRotation, bool allowTransposition, bool disallowSizeOptimization,
+    int countOfOptimizedDimensions, bool squareOnly, bool crop) {
   std::vector<Transform const *> *candidates =
       recommend(howMany, device, x, y, z, n, isBatched, isFloat, isForward,
                 isInPlace, isReal, maxSignalInc, maxMemory, disallowRotation,
-                allowTransposition, squareOnly, crop);
+                allowTransposition, disallowSizeOptimization,
+                countOfOptimizedDimensions, squareOnly, crop);
   std::vector<BenchmarkResult const *> *result = benchmark(*candidates);
   std::sort(result->begin(), result->end(), BenchmarkResult::execSort);
   delete candidates;

@@ -46,8 +46,9 @@ class SizeOptimizer {
   SizeOptimizer(CudaVersion::CudaVersion version, GeneralTransform &tr,
                 bool allowTrans);
   std::vector<const Transform *> *optimize(size_t nBest, int maxPercIncrease,
-                                           int maxMemMB, bool disallowRotation, bool squareOnly,
-                                           bool crop);
+                                           int maxMemMB, bool disallowRotation,
+                                           bool disallowOptimization, int dimensionCount,
+                                           bool squareOnly, bool crop);
 
  private:
   int getNoOfPrimes(Polynom &poly);
@@ -67,8 +68,9 @@ class SizeOptimizer {
       std::vector<Polynom> *input, bool crop);
   std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);
   std::vector<GeneralTransform> *optimizeXYZ(GeneralTransform &tr, size_t nBest,
-                                             int maxPercIncrease, bool disallowRotation, bool squareOnly,
-                                             bool crop);
+                                             int maxPercIncrease, bool disallowRotation,
+                                             bool disallowOptimization, int dimensionCount,
+                                             bool squareOnly, bool crop);
   std::vector<const Transform *> *optimizeN(
       std::vector<GeneralTransform> *transforms, size_t maxMem, size_t nBest);
   void collapseBatched(GeneralTransform &gt, size_t maxMem,

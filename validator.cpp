@@ -4,7 +4,7 @@ namespace cuFFTAdvisor {
 
 void Validator::validate(int x, int y, int z, int n, int device,
                          int maxSignalInc, int maxMemMB,
-                         bool disallowRotation,
+                         int countOfOptimizedDimensions,
                          bool allowTrans, bool squareOnly) {
   validate(x, y, z, n, device);
 
@@ -25,6 +25,12 @@ void Validator::validate(int x, int y, int z, int n, int device,
 
   if (allowTrans && squareOnly) {
     throw std::logic_error("Incompatible parameters. See help for detailed info.\n");
+  }
+
+  if (countOfOptimizedDimensions <= 0 || countOfOptimizedDimensions > 3) {
+    throw std::logic_error(
+            "Count of optimized input size dimensions must be between 1 and 3. Wrong input or int "
+            "overflow\n");
   }
 }
 

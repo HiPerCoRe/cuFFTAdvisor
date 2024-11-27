@@ -22,6 +22,8 @@ InputParser::InputParser(int argc, char **argv) {
   maxMemMB = parseMaxMemMB();
   allowTransposition = parseAllowTransposition();
   disallowRotation = parseDisallowRotation();
+  disallowSizeOptimization = parseDisallowRotation();
+  countOfOptimizedDimensions = parseCountOfOptimizedDimensions();
   squareOnly = parseSquareOnly();
   crop = parseCrop();
 }
@@ -54,6 +56,20 @@ int InputParser::parseMaxMemMB() {
       int mem = atoi(argv[i + 1]);
       argv[i] = argv[i + 1] = NULL;
       return mem;
+    }
+  }
+  return INT_MAX;
+}
+
+int InputParser::parseCountOfOptimizedDimensions() {
+  for (int i = 0; i < (argc - 1); i++) {
+    if (safeEquals(argv[i], "--countOfOptimizedDimensions")) {
+      if (NULL == argv[i + 1]) {
+        return -1;
+      }
+      int perc = atoi(argv[i + 1]);
+      argv[i] = argv[i + 1] = NULL;
+      return perc;
     }
   }
   return INT_MAX;
@@ -199,6 +215,16 @@ bool InputParser::parseAllowTransposition() {
 bool InputParser::parseDisallowRotation() {
   for (int i = 0; i < argc; i++) {
     if (safeEquals(argv[i], "--disallowRotation")) {
+      argv[i] = NULL;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool InputParser::parseDisallowSizeOptimization() {
+  for (int i = 0; i < argc; i++) {
+    if (safeEquals(argv[i], "--disallowSizeOptimization")) {
       argv[i] = NULL;
       return true;
     }

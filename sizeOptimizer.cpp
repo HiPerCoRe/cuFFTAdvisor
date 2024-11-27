@@ -38,12 +38,15 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
                                                         int maxPercIncrease,
                                                         int maxMemMB,
                                                         bool disallowRotation,
+                                                        bool disallowOptimization,
+                                                        int dimensionCount,
                                                         bool squareOnly,
                                                         bool crop) {
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
     std::vector<GeneralTransform> *tmp =
-        optimizeXYZ(in, nBest + 20, maxPercIncrease, disallowRotation, squareOnly, crop);
+        optimizeXYZ(in, nBest + 20, maxPercIncrease, disallowRotation,
+                    disallowOptimization, dimensionCount, squareOnly, crop);
     preoptimized.insert(preoptimized.end(), tmp->begin(), tmp->end());
     delete tmp;
   }
@@ -68,78 +71,6 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
   int kernelCountX = x.invocations;
   int kernelCountY = y.invocations;
 
-  /*
-    if (in.X <= in.Y) {
-        if (differenceBetweenXY <= 18) {
-            if (not divisibleBy2Y) {
-                if (primesCountY == 1) {
-                    swapSizes(in);
-                } else {
-                    in.swapped2D = false;
-                }
-            } else {
-                if (primesCountX == 1) {
-                    in.swapped2D = false;
-                } else {
-                    if (not divisibleBy2X) {
-                        swapSizes(in);
-                    } else {
-                        in.swapped2D = false;
-                    }
-                }
-            }
-        } else {
-            if (differenceBetweenXY <= 75000) {
-                if (not divisibleBy2Y) {
-                    in.swapped2D = false;
-                } else {
-                    swapSizes(in);
-                }
-            } else {
-                if (not divisibleBy2Y) {
-                    in.swapped2D = false;
-                } else {
-                    swapSizes(in);
-                }
-            }
-        }
-    }
-    else {
-        if (differenceBetweenXY <= 18) {
-            if (not divisibleBy2X) {
-                if (primesCountX == 1) {
-                    in.swapped2D = false;
-                } else {
-                    swapSizes(in);
-                }
-            } else {
-                if (primesCountY == 1) {
-                    swapSizes(in);
-                } else {
-                    if (not divisibleBy2Y) {
-                        in.swapped2D = false;
-                    } else {
-                        swapSizes(in);
-                    }
-                }
-            }
-        } else {
-            if (differenceBetweenXY <= 75000) {
-                if (not divisibleBy2X) {
-                    swapSizes(in);
-                } else {
-                    in.swapped2D = false;
-                }
-            } else {
-                if (not divisibleBy2X) {
-                    swapSizes(in);
-                } else {
-                    in.swapped2D = false;
-                }
-            }
-        }
-    }
-    */
   if (!divisibleBy2X) {
     if (kernelCountX <= 1.5) {
       if (in.X <= in.Y) {
@@ -347,10 +278,12 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           size_t nBest,
                                                           int maxPercIncrease,
                                                           bool disallowRotation,
+                                                          bool disallowOptimization,
+                                                          int dimensionCount,
                                                           bool squareOnly,
                                                           bool crop) {
 
-  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
+  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop, disallowRotation);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
   std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
@@ -362,7 +295,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysY = polysX;
     recPolysY = recPolysX;
   } else {
-    polysY = generatePolys(tr.Y, tr.isFloat, crop);
+    polysY = generatePolys(tr.Y, tr.isFloat, crop, disallowRotation || dimensionCount < 2);
     recPolysY = filterOptimal(polysY, crop);
   }
 
@@ -374,7 +307,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysZ = polysY;
     recPolysZ = recPolysY;
   } else {
-    polysZ = generatePolys(tr.Z, tr.isFloat, crop);
+    polysZ = generatePolys(tr.Z, tr.isFloat, crop, disallowRotation || dimensionCount < 3);
     recPolysZ = filterOptimal(polysZ, crop);
   }
 
@@ -525,8 +458,25 @@ int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
 }
 
 std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
-    size_t num, bool isFloat, bool crop) {
+    size_t num, bool isFloat, bool crop, bool useOriginalSize) {
+
   std::vector<Polynom> *result = new std::vector<Polynom>();
+
+  if (useOriginalSize) {
+    Polynom p;
+    p.value = num;
+    p.exponent2 = 0;
+    p.exponent3 = 0;
+    p.exponent5 = 0;
+    p.exponent7 = 0;
+    p.exponent11 = 0;
+    p.invocations = INT_MAX;
+    p.noOfPrimes = INT_MAX;
+
+    result->push_back(p);
+    return result;
+  }
+
   size_t maxPow2 = std::ceil(log(num) * log_2);
   size_t max = std::pow(2, maxPow2);
   size_t maxPow3 = std::ceil(std::log(max) * log_3);

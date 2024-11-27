@@ -20,6 +20,8 @@ class InputParser {
   int maxMemMB;
   bool allowTransposition;
   bool disallowRotation;
+  bool disallowSizeOptimization;
+  int countOfOptimizedDimensions;
   bool squareOnly;
   bool crop;
   Tristate::Tristate isBatched;
@@ -37,6 +39,8 @@ class InputParser {
   int parseMaxMemMB();
   bool parseAllowTransposition();
   bool parseDisallowRotation();
+  bool parseDisallowSizeOptimization();
+  int parseCountOfOptimizedDimensions();
   bool parseSquareOnly();
   bool parseCrop();
   Tristate::Tristate parseIsReal();
