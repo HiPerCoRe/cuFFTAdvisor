@@ -50,7 +50,7 @@ static inline const char *toString(Tristate t) {
 }  // namespace Tristate
 
 namespace CudaVersion {  // FIXME implement auto detection
-enum CudaVersion { V_8, V_9 };
+enum CudaVersion { V_8, V_9, V_12 };
 }  // namespace CudaVersion
 
 static inline const char *toString(cuFFTAdvisor::Tristate::Tristate t) {

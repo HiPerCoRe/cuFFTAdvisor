@@ -22,6 +22,7 @@ class SizeOptimizer {
     size_t exponent3;
     size_t exponent5;
     size_t exponent7;
+    size_t exponent11;
   };
 
   struct valueComparator {
@@ -45,23 +46,33 @@ class SizeOptimizer {
   SizeOptimizer(CudaVersion::CudaVersion version, GeneralTransform &tr,
                 bool allowTrans);
   std::vector<const Transform *> *optimize(size_t nBest, int maxPercIncrease,
-                                           int maxMemMB, bool squareOnly,
-                                           bool crop);
+                                           int maxMemMB, bool disallowRotation,
+                                           bool disallowOptimization, int dimensionCount,
+                                           bool squareOnly, bool crop);
 
  private:
   int getNoOfPrimes(Polynom &poly);
+  int getNoOfPrimes(long size);
   int getInvocations(int maxPower, size_t num);
+  
+  SizeOptimizer::Polynom SetCorrectValuesToOriginalPolynom(int num, bool isFloat);
+
+  void swapSizes(GeneralTransform &in);
+  bool swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y);
+
   std::vector<Triplet<int> *> optimize(GeneralTransform &tr, size_t nBest,
                                        int maxPercIncrease);
 
   int getInvocations(Polynom &poly, bool isFloat);
   int getInvocationsV8(Polynom &poly, bool isFloat);
+  int getInvocationsV12(Polynom &poly, bool isFloat);
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
-  std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);
+  std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop, bool disallowRotation);
   std::vector<GeneralTransform> *optimizeXYZ(GeneralTransform &tr, size_t nBest,
-                                             int maxPercIncrease, bool squareOnly,
-                                             bool crop);
+                                             int maxPercIncrease, bool disallowRotation,
+                                             bool disallowOptimization, int dimensionCount,
+                                             bool squareOnly, bool crop);
   std::vector<const Transform *> *optimizeN(
       std::vector<GeneralTransform> *transforms, size_t maxMem, size_t nBest);
   void collapseBatched(GeneralTransform &gt, size_t maxMem,
@@ -82,15 +93,34 @@ class SizeOptimizer {
   const double log_3;
   const double log_5;
   const double log_7;
+  const double log_11;
 
+  static const int V8_2D_REGULAR_MAX_SP = 0;
   static const int V8_RADIX_2_MAX_SP = 10;
   static const int V8_RADIX_3_MAX_SP = 6;
   static const int V8_RADIX_5_MAX_SP = 3;
   static const int V8_RADIX_7_MAX_SP = 3;
+
+
+  static const int V8_2D_REGULAR_MAX_DP = 0;
   static const int V8_RADIX_2_MAX_DP = 9;
   static const int V8_RADIX_3_MAX_DP = 5;
   static const int V8_RADIX_5_MAX_DP = 3;
   static const int V8_RADIX_7_MAX_DP = 3;
+
+  static const int V12_REGULAR_MAX_SP = 5103;
+  static const int V12_RADIX_2_MAX_SP = 11;
+  static const int V12_RADIX_3_MAX_SP = 7;
+  static const int V12_RADIX_5_MAX_SP = 4;
+  static const int V12_RADIX_7_MAX_SP = 3;
+  static const int V12_RADIX_11_MAX_SP = 3;
+
+  static const int V12_REGULAR_MAX_DP = 2187;
+  static const int V12_RADIX_2_MAX_DP = 11;
+  static const int V12_RADIX_3_MAX_DP = 6;
+  static const int V12_RADIX_5_MAX_DP = 5;
+  static const int V12_RADIX_7_MAX_DP = 4;
+  static const int V12_RADIX_11_MAX_DP = 3;
   static const Polynom UNIT;
 };
 

@@ -16,7 +16,8 @@ class Transform {
   enum Rank { RANK_1D = 1, RANK_2D = 2, RANK_3D = 3 };
 
   Transform(int device, int X, int Y, int Z, int N, bool isBatched,
-            bool isFloat, bool isForward, bool isInPlace, bool isReal)
+            bool isFloat, bool isForward, bool isInPlace, bool isReal,
+            int kernelInvocationX, int kernelInvocationY, int kernelInvocationZ)
       : device(device),
         X(X),
         Y(Y),
@@ -26,7 +27,10 @@ class Transform {
         isInPlace(isInPlace),
         isReal(isReal),
         isFloat(isFloat),
-        isForward(isForward) {
+        isForward(isForward),
+        kernelInvocationX(kernelInvocationX),
+        kernelInvocationY(kernelInvocationY),
+        kernelInvocationZ(kernelInvocationZ) {
     // preserve order of these methods!
     setRankInfo();
     setTypeInfo();
@@ -46,6 +50,10 @@ class Transform {
   bool isReal;     // otherwise C2C
   bool isFloat;    // otherwise double
   bool isForward;  // otherwise inverse
+
+  int kernelInvocationX;
+  int kernelInvocationY;
+  int kernelInvocationZ;
 
   // derived
   Rank rank;

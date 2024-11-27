@@ -46,6 +46,9 @@ GeneralTransform &GeneralTransform::operator=(const GeneralTransform &tr) {
     this->isForward = tr.isForward;
     this->isInPlace = tr.isInPlace;
     this->isReal = tr.isReal;
+    this->kernelInvocationX = tr.kernelInvocationX;
+    this->kernelInvocationY = tr.kernelInvocationY;
+    this->kernelInvocationZ = tr.kernelInvocationZ;
   }
   return *this;
 }

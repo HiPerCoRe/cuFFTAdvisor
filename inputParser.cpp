@@ -21,6 +21,9 @@ InputParser::InputParser(int argc, char **argv) {
   maxSignalInc = parseMaxSignalInc();
   maxMemMB = parseMaxMemMB();
   allowTransposition = parseAllowTransposition();
+  disallowRotation = parseDisallowRotation();
+  disallowSizeOptimization = parseDisallowSizeOptimization();
+  countOfOptimizedDimensions = parseCountOfOptimizedDimensions();
   squareOnly = parseSquareOnly();
   crop = parseCrop();
 }
@@ -56,6 +59,20 @@ int InputParser::parseMaxMemMB() {
     }
   }
   return INT_MAX;
+}
+
+int InputParser::parseCountOfOptimizedDimensions() {
+  for (int i = 0; i < (argc - 1); i++) {
+    if (safeEquals(argv[i], "--countOfOptimizedDimensions")) {
+      if (NULL == argv[i + 1]) {
+        return -1;
+      }
+      int perc = atoi(argv[i + 1]);
+      argv[i] = argv[i + 1] = NULL;
+      return perc;
+    }
+  }
+  return 3;
 }
 
 bool InputParser::reportUnparsed(FILE *stream) {
@@ -188,6 +205,26 @@ void InputParser::parseDevice() {
 bool InputParser::parseAllowTransposition() {
   for (int i = 0; i < argc; i++) {
     if (safeEquals(argv[i], "--allowTransposition")) {
+      argv[i] = NULL;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool InputParser::parseDisallowRotation() {
+  for (int i = 0; i < argc; i++) {
+    if (safeEquals(argv[i], "--disallowRotation")) {
+      argv[i] = NULL;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool InputParser::parseDisallowSizeOptimization() {
+  for (int i = 0; i < argc; i++) {
+    if (safeEquals(argv[i], "--disallowSizeOptimization")) {
       argv[i] = NULL;
       return true;
     }

@@ -46,6 +46,12 @@ int printHelp() {
                "(swapping dimensions). Prohibited by default. Valid for "
                "'-find' only."
             << std::endl;
+  std::cout << "\t--disallowRotation : consider also rotation of X and Y axes "
+               "(swapping dimensions). Allowed by default."
+            << std::endl;
+  std::cout << "\t--disallowSizeOptimization : disable size optimization by padding/cropping. "
+               "Allowed by default."
+            << std::endl;
   std::cout << "\t--squareOnly : consider only square shapes "
                "(X dimension size will be used as a starting point). "
                "Incompatible with --allowTransposition."
@@ -60,6 +66,9 @@ int printHelp() {
             << std::endl;
   std::cout << "\t--maxMem MB : max memory (in MB) that transformation can "
                "use, default = device limit"
+            << std::endl;
+  std::cout << "\t--countOfOptimizedDimensions COUNT : number of size dimensions, that are optimized, "
+               ", default = all - X, Y, Z"
             << std::endl;
   return -1;
 }
@@ -109,8 +118,11 @@ int parseRecommend(int argc, char **argv, int howMany) {
             howMany, parser.device, parser.x, parser.y, parser.z, parser.n,
             parser.isBatched, parser.isFloat, parser.isForward,
             parser.isInPlace, parser.isReal, parser.maxSignalInc,
-            parser.maxMemMB, parser.allowTransposition, parser.squareOnly,
-            parser.crop);
+            parser.maxMemMB, parser.disallowRotation,
+            parser.allowTransposition,
+            parser.disallowSizeOptimization,
+            parser.countOfOptimizedDimensions,
+            parser.squareOnly, parser.crop);
 
     cuFFTAdvisor::Transform::printHeader(stdout);
     std::cout << std::endl;
@@ -142,8 +154,10 @@ int parseFind(int argc, char **argv, int howMany) {
                                     parser.isFloat, parser.isForward,
                                     parser.isInPlace, parser.isReal,
                                     parser.maxSignalInc, parser.maxMemMB,
-                                    parser.allowTransposition, parser.squareOnly,
-                                    parser.crop);
+                                    parser.disallowRotation, parser.allowTransposition,
+                                    parser.disallowSizeOptimization,
+                                    parser.countOfOptimizedDimensions,
+                                    parser.squareOnly, parser.crop);
 
     cuFFTAdvisor::BenchmarkResult::printHeader(stdout);
     std::cout << std::endl;
