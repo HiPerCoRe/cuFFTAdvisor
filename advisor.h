@@ -28,7 +28,7 @@ class Advisor {
       bool disallowRotation = false,
       bool allowTransposition = false,
       bool disallowSizeOptimization = false,
-      int countOfOptimizedDimensions = INT_MAX,
+      int countOfOptimizedDimensions = 3,
       bool squareOnly = false,
       bool crop = false);
 
@@ -43,7 +43,7 @@ class Advisor {
       bool disallowRotation = false,
       bool allowTransposition = false,
       bool disallowSizeOptimization = false,
-      int countOfOptimizedDimensions = INT_MAX,
+      int countOfOptimizedDimensions = 3,
       bool squareOnly = false,
       bool crop = false);
 

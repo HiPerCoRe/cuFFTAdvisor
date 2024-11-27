@@ -22,7 +22,7 @@ InputParser::InputParser(int argc, char **argv) {
   maxMemMB = parseMaxMemMB();
   allowTransposition = parseAllowTransposition();
   disallowRotation = parseDisallowRotation();
-  disallowSizeOptimization = parseDisallowRotation();
+  disallowSizeOptimization = parseDisallowSizeOptimization();
   countOfOptimizedDimensions = parseCountOfOptimizedDimensions();
   squareOnly = parseSquareOnly();
   crop = parseCrop();
@@ -72,7 +72,7 @@ int InputParser::parseCountOfOptimizedDimensions() {
       return perc;
     }
   }
-  return INT_MAX;
+  return 3;
 }
 
 bool InputParser::reportUnparsed(FILE *stream) {
