@@ -75,4 +75,6 @@ static inline bool safeEquals(const char *l, const char *r) {
 
 }  // namespace cuFFTAdvisor
 
+const int MaxNumberOfOptimizedDimensions = 3;
+
 #endif  // CUFFTADVISOR_UTILS_H_
