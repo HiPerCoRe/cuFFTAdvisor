@@ -54,6 +54,8 @@ class SizeOptimizer {
   int getNoOfPrimes(Polynom &poly);
   int getNoOfPrimes(long size);
   int getInvocations(int maxPower, size_t num);
+  
+  SizeOptimizer::Polynom SetCorrectValuesToOriginalPolynom(int num, bool isFloat);
 
   void swapSizes(GeneralTransform &in);
   bool swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y);
@@ -66,7 +68,7 @@ class SizeOptimizer {
   int getInvocationsV12(Polynom &poly, bool isFloat);
   std::set<Polynom, valueComparator> *filterOptimal(
       std::vector<Polynom> *input, bool crop);
-  std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop);
+  std::vector<Polynom> *generatePolys(size_t num, bool isFloat, bool crop, bool disallowRotation);
   std::vector<GeneralTransform> *optimizeXYZ(GeneralTransform &tr, size_t nBest,
                                              int maxPercIncrease, bool disallowRotation,
                                              bool disallowOptimization, int dimensionCount,

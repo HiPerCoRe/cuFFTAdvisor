@@ -283,7 +283,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           bool squareOnly,
                                                           bool crop) {
 
-  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop, disallowRotation);
+  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop, disallowOptimization);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
   std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
@@ -295,7 +295,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysY = polysX;
     recPolysY = recPolysX;
   } else {
-    polysY = generatePolys(tr.Y, tr.isFloat, crop, disallowRotation || dimensionCount < 2);
+    polysY = generatePolys(tr.Y, tr.isFloat, crop, disallowOptimization || dimensionCount < 2);
     recPolysY = filterOptimal(polysY, crop);
   }
 
@@ -307,7 +307,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysZ = polysY;
     recPolysZ = recPolysY;
   } else {
-    polysZ = generatePolys(tr.Z, tr.isFloat, crop, disallowRotation || dimensionCount < 3);
+    polysZ = generatePolys(tr.Z, tr.isFloat, crop, disallowOptimization || dimensionCount < 3);
     recPolysZ = filterOptimal(polysZ, crop);
   }
 
@@ -388,8 +388,6 @@ int SizeOptimizer::getNoOfPrimes(long size) {
 }
 
 int SizeOptimizer::getInvocations(int maxPower, size_t num) {
-  //return num % maxPower + (num % maxPower != 0 ? 1 : 0);
-
   int count = 0;
   while (0 != num) {
     for (size_t p = maxPower; p > 0; p--) {
@@ -457,23 +455,58 @@ int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
   }
 }
 
+SizeOptimizer::Polynom SizeOptimizer::SetCorrectValuesToOriginalPolynom(int num, bool isFloat) {
+  Polynom poly;
+  poly.value = num;
+  poly.exponent2 = 0;
+  poly.exponent3 = 0;
+  poly.exponent5 = 0;
+  poly.exponent7 = 0;
+  poly.exponent11 = 0;
+
+  while (num % 2 == 0) {
+    poly.exponent2++;
+    num /= 2;
+  }
+  while (num % 3 == 0) {
+    poly.exponent3++;
+    num /= 3;
+  }
+  while (num % 5 == 0) {
+    poly.exponent5++;
+    num /= 5;
+  }
+  while (num % 7 == 0) {
+    poly.exponent7++;
+    num /= 7;
+  }
+  while (num % 11 == 0) {
+    poly.exponent11++;
+    num /= 11;
+  }
+
+  if (num == 1) {
+    poly.invocations = getInvocations(poly, isFloat);
+    poly.noOfPrimes = getNoOfPrimes(poly);
+  }
+  else {
+    poly.invocations = INT_MAX;
+    poly.noOfPrimes = INT_MAX;
+  }
+
+  return poly;
+}
+
 std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
     size_t num, bool isFloat, bool crop, bool useOriginalSize) {
 
   std::vector<Polynom> *result = new std::vector<Polynom>();
 
   if (useOriginalSize) {
-    Polynom p;
-    p.value = num;
-    p.exponent2 = 0;
-    p.exponent3 = 0;
-    p.exponent5 = 0;
-    p.exponent7 = 0;
-    p.exponent11 = 0;
-    p.invocations = INT_MAX;
-    p.noOfPrimes = INT_MAX;
+    Polynom p = SetCorrectValuesToOriginalPolynom(num, isFloat);
 
     result->push_back(p);
+
     return result;
   }
 
