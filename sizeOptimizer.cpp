@@ -72,7 +72,7 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
   int kernelCountY = y.invocations;
 
   if (!divisibleBy2X) {
-    if (kernelCountX <= 1.5) {
+    if (kernelCountX <= 1) {
       if (in.X <= in.Y) {
         if (!divisibleBy2Y) {
           in.swapped2D = false;
@@ -90,10 +90,10 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
       swapSizes(in);
     }
   } else {
-    if (kernelCountY <= 1.5) {
-      if (kernelCountX <= 1.5) {
+    if (kernelCountY <= 1) {
+      if (kernelCountX <= 1) {
         if (!divisibleBy2Y) {
-          if (primesCountY <= 1.5) {
+          if (primesCountY <= 1) {
             swapSizes(in);
           } else {
             in.swapped2D = false;
@@ -102,7 +102,7 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
           in.swapped2D = false;
         }
       } else {
-        if (primesCountY <= 1.5) {
+        if (primesCountY <= 1) {
           if (differenceBetweenXY <= 35000) {
             in.swapped2D = false;
           } else {
@@ -121,11 +121,11 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
         }
       }
     } else {
-      if (primesCountX <= 1.5) {
-        if (primesCountY <= 2.5) {
+      if (primesCountX <= 1) {
+        if (primesCountY <= 2) {
           in.swapped2D = false;
         } else {
-          if (kernelCountY <= 3.5) {
+          if (kernelCountY <= 3) {
             if (differenceBetweenXY <= 100000) {
               in.swapped2D = false;
             } else {
@@ -369,19 +369,19 @@ int SizeOptimizer::getNoOfPrimes(Polynom &poly) {
 
 int SizeOptimizer::getNoOfPrimes(long size) {
   int counter = 0;
-  if (size % 2 != 0) {
+  if (size % 2 == 0) {
         counter++;
   }
-  if (size % 3 != 0) {
+  if (size % 3 == 0) {
     counter++;
   }
-  if (size % 5 != 0) {
+  if (size % 5 == 0) {
     counter++;
   }
-  if (size % 7 != 0) {
+  if (size % 7 == 0) {
     counter++;
   }
-  if (size % 11 != 0) {
+  if (size % 11 == 0) {
     counter++;
   }
   return counter;
@@ -517,7 +517,7 @@ std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
   size_t maxPow7 = std::ceil(std::log(max) * log_7);
   size_t maxPow11 = std::ceil(std::log(max) * log_11);
 
-  for (size_t a = 0; a <= maxPow2; a++) {  // we want at least one multiple of two
+  for (size_t a = 0; a <= maxPow2; a++) {
     for (size_t b = 0; b <= maxPow3; b++) {
       for (size_t c = 0; c <= maxPow5; c++) {
         for (size_t d = 0; d <= maxPow7; d++) {
@@ -527,6 +527,7 @@ std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
                            * std::pow(11, e);
 
             if (a == 0) {
+              // we want at least one multiple of two if regular_fft kernel is not induced
               if ((isFloat && value > V12_REGULAR_MAX_SP) || (!isFloat && value > V12_REGULAR_MAX_DP)) {
                 continue;
               }
@@ -585,6 +586,9 @@ std::set<SizeOptimizer::Polynom, SizeOptimizer::valueComparator>
   // add all polynoms which have a minimal number of kernel invocations
   for (size_t i = 0; i < size; i++) {
     Polynom &tmp = input->at(i);
+    // tmp.invocations -> number of kernel invocations
+    // tmp.noOfPrimes -> number of primes in size factorization
+    //                -> cannot use more than 5 (2, 3, 5, 7, 11)
     if ((tmp.invocations <= (minInv.invocations + 2)) &&
         (tmp.noOfPrimes <= 5)) {
       result->insert(tmp);
