@@ -67,9 +67,9 @@ int InputParser::parseCountOfOptimizedDimensions() {
       if (NULL == argv[i + 1]) {
         return -1;
       }
-      int perc = atoi(argv[i + 1]);
+      int count = atoi(argv[i + 1]);
       argv[i] = argv[i + 1] = NULL;
-      return perc;
+      return count;
     }
   }
   return INT_MAX;
