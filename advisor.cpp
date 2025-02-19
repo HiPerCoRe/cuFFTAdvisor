@@ -68,7 +68,9 @@ std::vector<BenchmarkResult const *> *Advisor::benchmark(
       new std::vector<BenchmarkResult const *>();
   int size = transforms.size();
 
-  Benchmarker::benchmark(transforms.at(0));
+  if (transforms.size() > 0) {
+    Benchmarker::benchmark(transforms.at(0));
+  }
   
   for (int i = 0; i < size; i++) {
     results->push_back(Benchmarker::benchmark(transforms.at(i)));
