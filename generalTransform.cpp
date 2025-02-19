@@ -17,7 +17,10 @@ GeneralTransform::GeneralTransform(int device, int X, int Y, int Z, int N,
       isFloat(isFloat),
       isForward(isForward),
       isInPlace(isInPlace),
-      isReal(isReal) {}
+      isReal(isReal) {},
+      kernelInvocationX = 0,
+      kernelInvocationY = 0,
+      kernelInvocationZ = 0
 
 GeneralTransform::GeneralTransform(int X, int Y, int Z,
                                    const GeneralTransform &tr)
@@ -30,7 +33,10 @@ GeneralTransform::GeneralTransform(int X, int Y, int Z,
       isFloat(tr.isFloat),
       isForward(tr.isForward),
       isInPlace(tr.isInPlace),
-      isReal(tr.isReal) {}
+      isReal(tr.isReal) {},
+      kernelInvocationX = 0,
+      kernelInvocationY = 0,
+      kernelInvocationZ = 0
 
 GeneralTransform::GeneralTransform(const GeneralTransform &tr) { *this = tr; }
 

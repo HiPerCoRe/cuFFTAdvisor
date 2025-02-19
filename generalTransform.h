@@ -35,7 +35,9 @@ class GeneralTransform {
   int originalY;
   int originalZ;
 
-  int kernelInvocationX;
+  // number of kernel invocations for selected dimension
+  // the number of kernel invocations is decided separately for each dimension
+  int kernelInvocationX ;
   int kernelInvocationY;
   int kernelInvocationZ;
 
