@@ -74,11 +74,9 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
   if (!divisibleBy2X) {
     if (kernelCountX <= 1) {
       if (in.X <= in.Y) {
-        if (!divisibleBy2Y) {
-        } else {
+        if (divisibleBy2Y) {
           if (differenceBetweenXY <= 35) {
             swapSizes(in);
-          } else {
           }
         }
       } else {
@@ -93,20 +91,16 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
         if (!divisibleBy2Y) {
           if (primesCountY <= 1) {
             swapSizes(in);
-          } else {
           }
-        } else {
         }
       } else {
         if (primesCountY <= 1) {
-          if (differenceBetweenXY <= 35000) {
-          } else {
+          if (!(differenceBetweenXY <= 35000)) {
             swapSizes(in);
           }
         } else {
           if (!divisibleBy2Y) {
-            if (differenceBetweenXY <= 10) {
-            } else {
+            if (!(differenceBetweenXY <= 10)) {
               swapSizes(in);
             }
           } else {
@@ -116,22 +110,18 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
       }
     } else {
       if (primesCountX <= 1) {
-        if (primesCountY <= 2) {
-        } else {
+        if (!(primesCountY <= 2)) {
           if (kernelCountY <= 3) {
-            if (differenceBetweenXY <= 100000) {
-            } else {
+            if (!(differenceBetweenXY <= 100000)) {
               swapSizes(in);
             }
           } else {
             swapSizes(in);
           }
         }
-      } else {
       }
     }
   }
-
 
   return true;
 }
