@@ -57,8 +57,6 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
 }
 
 void SizeOptimizer::swapSizes(GeneralTransform &in) {
-  in.originalX = in.X;
-  in.originalY = in.Y;
   in.X = in.originalY;
   in.Y = in.originalX;
 }
