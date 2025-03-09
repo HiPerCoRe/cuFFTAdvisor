@@ -67,8 +67,8 @@ int printHelp() {
   std::cout << "\t--maxMem MB : max memory (in MB) that transformation can "
                "use, default = device limit"
             << std::endl;
-  std::cout << "\t--countOfOptimizedDimensions COUNT : number of size dimensions, that are optimized, "
-               ", default = all - X, Y, Z"
+  std::cout << "\t--countOfOptimizedDimensions COUNT : number of size dimensionsthat will be optimized, "
+               "Default: '3' for 3D signal, '2' for 2D signal, '1' for 1D signal"
             << std::endl;
   return -1;
 }
