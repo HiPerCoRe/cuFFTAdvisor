@@ -77,4 +77,6 @@ static inline bool safeEquals(const char *l, const char *r) {
 
 const int MaxNumberOfOptimizedDimensions = 3;
 
+const size_t MinimalCountOfUsedConfigurations = 10;
+
 #endif  // CUFFTADVISOR_UTILS_H_

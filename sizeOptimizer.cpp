@@ -44,8 +44,11 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
                                                         bool crop) {
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
+
+    size_t testedConfigs = std::max(MinimalCountOfUsedConfigurations, nBest);
+
     std::vector<GeneralTransform> *tmp =
-        optimizeXYZ(in, nBest + 20, maxPercIncrease, disallowRotation,
+        optimizeXYZ(in, testedConfigs, maxPercIncrease, disallowRotation,
                     disallowOptimization, dimensionCount, squareOnly, crop);
     preoptimized.insert(preoptimized.end(), tmp->begin(), tmp->end());
     delete tmp;
