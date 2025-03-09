@@ -72,7 +72,7 @@ int InputParser::parseCountOfOptimizedDimensions() {
       return count;
     }
   }
-  return 3;
+  return MaxNumberOfOptimizedDimensions;
 }
 
 bool InputParser::reportUnparsed(FILE *stream) {
