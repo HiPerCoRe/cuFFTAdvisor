@@ -40,8 +40,6 @@ class GeneralTransform {
   int kernelInvocationX;
   int kernelInvocationY;
   int kernelInvocationZ;
-
-  bool swapped2D;
 };
 
 }  // namespace cuFFTAdvisor

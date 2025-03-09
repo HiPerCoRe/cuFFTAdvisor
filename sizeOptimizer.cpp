@@ -57,7 +57,6 @@ std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
 }
 
 void SizeOptimizer::swapSizes(GeneralTransform &in) {
-  in.swapped2D = true;
   in.originalX = in.X;
   in.originalY = in.Y;
   in.X = in.originalY;
@@ -78,12 +77,10 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
     if (kernelCountX <= 1) {
       if (in.X <= in.Y) {
         if (!divisibleBy2Y) {
-          in.swapped2D = false;
         } else {
           if (differenceBetweenXY <= 35) {
             swapSizes(in);
           } else {
-            in.swapped2D = false;
           }
         }
       } else {
@@ -99,22 +96,18 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
           if (primesCountY <= 1) {
             swapSizes(in);
           } else {
-            in.swapped2D = false;
           }
         } else {
-          in.swapped2D = false;
         }
       } else {
         if (primesCountY <= 1) {
           if (differenceBetweenXY <= 35000) {
-            in.swapped2D = false;
           } else {
             swapSizes(in);
           }
         } else {
           if (!divisibleBy2Y) {
             if (differenceBetweenXY <= 10) {
-              in.swapped2D = false;
             } else {
               swapSizes(in);
             }
@@ -126,11 +119,9 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
     } else {
       if (primesCountX <= 1) {
         if (primesCountY <= 2) {
-          in.swapped2D = false;
         } else {
           if (kernelCountY <= 3) {
             if (differenceBetweenXY <= 100000) {
-              in.swapped2D = false;
             } else {
               swapSizes(in);
             }
@@ -139,7 +130,6 @@ bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Po
           }
         }
       } else {
-        in.swapped2D = false;
       }
     }
   }
