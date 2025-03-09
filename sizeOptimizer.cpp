@@ -449,11 +449,6 @@ int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
 SizeOptimizer::Polynom SizeOptimizer::SetCorrectValuesToOriginalPolynom(int num, bool isFloat) {
   Polynom poly;
   poly.value = num;
-  poly.exponent2 = 0;
-  poly.exponent3 = 0;
-  poly.exponent5 = 0;
-  poly.exponent7 = 0;
-  poly.exponent11 = 0;
 
   while (num % 2 == 0) {
     poly.exponent2++;

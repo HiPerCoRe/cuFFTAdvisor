@@ -15,14 +15,28 @@ namespace cuFFTAdvisor {
 class SizeOptimizer {
  private:
   struct Polynom {
-    size_t value;
-    int invocations;
-    int noOfPrimes;
-    size_t exponent2;
-    size_t exponent3;
-    size_t exponent5;
-    size_t exponent7;
-    size_t exponent11;
+    size_t value = 0;
+    int invocations = 0;
+    int noOfPrimes = 0;
+    size_t exponent2 = 0;
+    size_t exponent3 = 0;
+    size_t exponent5 = 0;
+    size_t exponent7 = 0;
+    size_t exponent11 = 0;
+
+    Polynom() = default;
+
+    Polynom(size_t value, int invocations, int noOfPrimes, size_t exponent2, size_t exponent3, size_t exponent5, size_t exponent7, size_t exponent11)
+    {
+      value = 0;
+      invocations = 0;
+      noOfPrimes = 0;
+      exponent2 = 0;
+      exponent3 = 0;
+      exponent5 = 0;
+      exponent7 = 0;
+      exponent11 = 0;
+    }
   };
 
   struct valueComparator {
