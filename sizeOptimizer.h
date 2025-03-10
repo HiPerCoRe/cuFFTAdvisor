@@ -65,14 +65,25 @@ class SizeOptimizer {
                                            bool squareOnly, bool crop);
 
  private:
+  
+  void swapSizes(GeneralTransform &in);
+  /**
+   * This method (if not disallowed) rotate sizes in 2D configurations based on
+   * trained decision tree (rotation_decision_tree_marked_leaves.png).
+   * This function is basically desicion tree rewritten to source code leaving
+   * empty branches (i.e. branches, that end with "not swapped")
+   *
+   * Used parameters:
+   * divisibility by 2; called kernel count; distinct prime count;
+   * size comparison between X and Y; size difference between X and Y;
+   */
+  bool swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y);
+
   int getNoOfPrimes(Polynom &poly);
   int getNoOfPrimes(long size);
   int getInvocations(int maxPower, size_t num);
   
   SizeOptimizer::Polynom SetCorrectValuesToOriginalPolynom(int num, bool isFloat);
-
-  void swapSizes(GeneralTransform &in);
-  bool swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y);
 
   std::vector<Triplet<int> *> optimize(GeneralTransform &tr, size_t nBest,
                                        int maxPercIncrease);
