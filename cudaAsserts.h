@@ -64,7 +64,7 @@ static inline const char *_cudaGetErrorEnum(cufftResult error) {
   	case CUFFT_LICENSE_ERROR:
   	return "CUFFT_LICENSE_ERROR";
 #endif
-
+  }
   return "<unknown>";
 }
 
