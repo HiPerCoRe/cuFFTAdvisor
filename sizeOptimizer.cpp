@@ -3,7 +3,7 @@
 namespace cuFFTAdvisor {
 
 const struct SizeOptimizer::Polynom SizeOptimizer::UNIT = {
-    .value = 1, 0, 0, 0, 0, 0, 0};
+    .value = 1, 0, 0, 0, 0, 0, 0, 0};
 
 SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
                              GeneralTransform &tr, bool allowTrans)
@@ -11,7 +11,8 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
       log_2(1.0 / std::log(2)),
       log_3(1.0 / std::log(3)),
       log_5(1.0 / std::log(5)),
-      log_7(1.0 / std::log(7)) {
+      log_7(1.0 / std::log(7)),
+      log_11(1.0 / std::log(11)) {
   if (Tristate::BOTH == tr.isFloat) {
     // if user is not sure if they needs double, then they doesn't need it
     tr.isFloat = Tristate::TRUE;
@@ -36,26 +37,115 @@ SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
 std::vector<const Transform *> *SizeOptimizer::optimize(size_t nBest,
                                                         int maxPercIncrease,
                                                         int maxMemMB,
+                                                        bool disallowRotation,
+                                                        bool disallowOptimization,
+                                                        int dimensionCount,
                                                         bool squareOnly,
                                                         bool crop) {
   std::vector<GeneralTransform> preoptimized;
   for (auto in : input) {
+
+    size_t testedConfigs = std::max(MinimalCountOfUsedConfigurations, nBest);
+
     std::vector<GeneralTransform> *tmp =
-        optimizeXYZ(in, nBest, maxPercIncrease, squareOnly, crop);
+        optimizeXYZ(in, testedConfigs, maxPercIncrease, disallowRotation,
+                    disallowOptimization, dimensionCount, squareOnly, crop);
     preoptimized.insert(preoptimized.end(), tmp->begin(), tmp->end());
     delete tmp;
   }
   return optimizeN(&preoptimized, maxMemMB, nBest);
 }
 
+void SizeOptimizer::swapSizes(GeneralTransform &in) {
+  in.X = in.originalY;
+  in.Y = in.originalX;
+}
+
+bool SizeOptimizer::swapSizes2D(GeneralTransform &in, const Polynom &x, const Polynom &y) {
+  int primesCountX = getNoOfPrimes(in.X);
+  int primesCountY = getNoOfPrimes(in.Y);
+
+  bool divisibleBy2X = in.X % 2 == 0;
+  bool divisibleBy2Y = in.Y % 2 == 0;
+  float differenceBetweenXY = (float)std::max(in.X, in.Y) / std::min(in.X, in.Y);
+  int kernelCountX = x.invocations;
+  int kernelCountY = y.invocations;
+
+  if (!divisibleBy2X) {
+    if (kernelCountX <= 1) {
+      if (in.X <= in.Y) {
+        if (divisibleBy2Y) {
+          if (differenceBetweenXY <= 35) {
+            swapSizes(in);
+          }
+        }
+      } else {
+        swapSizes(in);
+      }
+    } else {
+      swapSizes(in);
+    }
+  } else {
+    if (kernelCountY <= 1) {
+      if (kernelCountX <= 1) {
+        if (!divisibleBy2Y) {
+          if (primesCountY <= 1) {
+            swapSizes(in);
+          }
+        }
+      } else {
+        if (primesCountY <= 1) {
+          if (!(differenceBetweenXY <= 35000)) {
+            swapSizes(in);
+          }
+        } else {
+          if (!divisibleBy2Y) {
+            if (!(differenceBetweenXY <= 10)) {
+              swapSizes(in);
+            }
+          } else {
+            swapSizes(in);
+          }
+        }
+      }
+    } else {
+      if (primesCountX <= 1) {
+        if (!(primesCountY <= 2)) {
+          if (kernelCountY <= 3) {
+            if (!(differenceBetweenXY <= 100000)) {
+              swapSizes(in);
+            }
+          } else {
+            swapSizes(in);
+          }
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+
+
 bool SizeOptimizer::sizeSort(const Transform *l, const Transform *r) {
   if (l->N != r->N) return l->N > r->N;  // prefer bigger batches
+
+  int lKernelCount = l->kernelInvocationX + l->kernelInvocationY + l->kernelInvocationZ;
+  int rKernelCount = r->kernelInvocationX + r->kernelInvocationY + r->kernelInvocationZ;
+
   size_t lDims = l->X * l->Y * l->Z;
   size_t rDims = r->X * r->Y * r->Z;
+
+  if (lKernelCount != rKernelCount) return lKernelCount < rKernelCount;
+  if (l->kernelInvocationX != r->kernelInvocationX) return l->kernelInvocationX < r->kernelInvocationX;
+  if (l->kernelInvocationY != r->kernelInvocationY) return l->kernelInvocationY < r->kernelInvocationY;
+  if (l->kernelInvocationZ != r->kernelInvocationZ) return l->kernelInvocationZ < r->kernelInvocationZ;
+
   if (lDims != rDims) return lDims < rDims;
-  if (l->Z != r->Z) return l->Z < r->Z;
+  if (l->X != r->X) return l->X < r->X;
   if (l->Y != r->Y) return l->Y < r->Y;
-  return l->X < r->X;
+  return l->Z < r->Z;
 }
 
 bool SizeOptimizer::perfSort(const Transform *l, const Transform *r) {
@@ -77,6 +167,7 @@ bool SizeOptimizer::perfSort(const Transform *l, const Transform *r) {
 std::vector<const Transform *> *SizeOptimizer::optimizeN(
     std::vector<GeneralTransform> *transforms, size_t maxMem, size_t nBest) {
   std::vector<const Transform *> *result = new std::vector<const Transform *>();
+
   for (auto& gt : *transforms) {
     if (Tristate::isNot(gt.isBatched)) {
       collapse(gt, false, gt.N, maxMem, result);
@@ -85,6 +176,7 @@ std::vector<const Transform *> *SizeOptimizer::optimizeN(
       collapseBatched(gt, maxMem, result);
     }
   }
+
   std::sort(result->begin(), result->end(), perfSort);
   while (result->size() > nBest) {
     delete result->back();
@@ -123,7 +215,8 @@ bool SizeOptimizer::collapse(GeneralTransform &gt, bool isBatched, size_t N,
   std::vector<const Transform *> transforms;
   TransformGenerator::generate(gt.device, gt.X, gt.Y, gt.Z, N, isBatched,
                                gt.isFloat, gt.isForward, gt.isInPlace,
-                               gt.isReal, transforms);
+                               gt.isReal, gt.kernelInvocationX, gt.kernelInvocationY,
+                               gt.kernelInvocationZ, transforms);
 
   size_t noOfTransforms = transforms.size();
   for (size_t i = 0; i < noOfTransforms; i++) {
@@ -133,6 +226,7 @@ bool SizeOptimizer::collapse(GeneralTransform &gt, bool isBatched, size_t N,
     size_t planSize = std::max(r.planSizeEstimateB, r.planSizeEstimate2B);
     size_t totalSizeBytes = r.transform->dataSizeB + planSize;
     size_t totalMB = std::ceil(toMB(totalSizeBytes));
+
     if (totalMB <= maxMemMB) {
       result->push_back(t);
       updated = true;
@@ -164,10 +258,13 @@ size_t SizeOptimizer::getMinSize(GeneralTransform &tr, int maxPercDecrease, bool
 std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
                                                           size_t nBest,
                                                           int maxPercIncrease,
+                                                          bool disallowRotation,
+                                                          bool disallowOptimization,
+                                                          int dimensionCount,
                                                           bool squareOnly,
                                                           bool crop) {
 
-  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop);
+  std::vector<Polynom> *polysX = generatePolys(tr.X, tr.isFloat, crop, disallowOptimization);
   std::vector<Polynom> *polysY;
   std::vector<Polynom> *polysZ;
   std::set<Polynom, valueComparator> *recPolysX = filterOptimal(polysX, crop);
@@ -179,7 +276,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysY = polysX;
     recPolysY = recPolysX;
   } else {
-    polysY = generatePolys(tr.Y, tr.isFloat, crop);
+    polysY = generatePolys(tr.Y, tr.isFloat, crop, disallowOptimization || dimensionCount < 2);
     recPolysY = filterOptimal(polysY, crop);
   }
 
@@ -191,7 +288,7 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
     polysZ = polysY;
     recPolysZ = recPolysY;
   } else {
-    polysZ = generatePolys(tr.Z, tr.isFloat, crop);
+    polysZ = generatePolys(tr.Z, tr.isFloat, crop, disallowOptimization || dimensionCount < 3);
     recPolysZ = filterOptimal(polysZ, crop);
   }
 
@@ -213,6 +310,15 @@ std::vector<GeneralTransform> *SizeOptimizer::optimizeXYZ(GeneralTransform &tr,
           // we can take nbest only, as others very probably won't be faster
           found++;
           GeneralTransform t((int)x.value, (int)y.value, (int)z.value, tr);
+
+          if (!disallowRotation && t.Y != 1) {
+            swapSizes2D(t, x, y);
+          }
+
+          t.kernelInvocationX = x.invocations;
+          t.kernelInvocationY = y.invocations;
+          t.kernelInvocationZ = z.invocations;
+
           result->push_back(t);
         }
       }
@@ -238,6 +344,27 @@ int SizeOptimizer::getNoOfPrimes(Polynom &poly) {
   if (poly.exponent3 != 0) counter++;
   if (poly.exponent5 != 0) counter++;
   if (poly.exponent7 != 0) counter++;
+  if (poly.exponent11 != 0) counter++;
+  return counter;
+}
+
+int SizeOptimizer::getNoOfPrimes(long size) {
+  int counter = 0;
+  if (size % 2 == 0) {
+        counter++;
+  }
+  if (size % 3 == 0) {
+    counter++;
+  }
+  if (size % 5 == 0) {
+    counter++;
+  }
+  if (size % 7 == 0) {
+    counter++;
+  }
+  if (size % 11 == 0) {
+    counter++;
+  }
   return counter;
 }
 
@@ -271,44 +398,131 @@ int SizeOptimizer::getInvocationsV8(Polynom &poly, bool isFloat) {
   return result;
 }
 
+int SizeOptimizer::getInvocationsV12(Polynom &poly, bool isFloat) {
+  int result = 0;
+  if (isFloat) {
+    if (poly.value <= V12_REGULAR_MAX_SP)
+    {
+      return 1;
+    }
+    result += getInvocations(V12_RADIX_2_MAX_SP, poly.exponent2);
+    result += getInvocations(V12_RADIX_3_MAX_SP, poly.exponent3);
+    result += getInvocations(V12_RADIX_5_MAX_SP, poly.exponent5);
+    result += getInvocations(V12_RADIX_7_MAX_SP, poly.exponent7);
+    result += getInvocations(V12_RADIX_11_MAX_SP, poly.exponent11);
+  } else {
+    if (poly.value <= V12_REGULAR_MAX_DP)
+    {
+      return 1;
+    }
+    result += getInvocations(V12_RADIX_2_MAX_DP, poly.exponent2);
+    result += getInvocations(V12_RADIX_3_MAX_DP, poly.exponent3);
+    result += getInvocations(V12_RADIX_5_MAX_DP, poly.exponent5);
+    result += getInvocations(V12_RADIX_7_MAX_DP, poly.exponent7);
+    result += getInvocations(V12_RADIX_11_MAX_DP, poly.exponent11);
+  }
+  return result;
+}
+
+
 int SizeOptimizer::getInvocations(Polynom &poly, bool isFloat) {
   switch (version) {
     case (CudaVersion::V_8):
       return getInvocationsV8(poly, isFloat);
-    //	case (CudaVersion::V_9):
-    //		return getInvocationsV9(poly); // FIXME implement
+    case (CudaVersion::V_12):
+      return getInvocationsV12(poly, isFloat);
     default:
       throw std::domain_error("Unsupported version of CUDA");
   }
 }
 
+SizeOptimizer::Polynom SizeOptimizer::SetCorrectValuesToOriginalPolynom(int num, bool isFloat) {
+  Polynom poly;
+  poly.value = num;
+
+  while (num % 2 == 0) {
+    poly.exponent2++;
+    num /= 2;
+  }
+  while (num % 3 == 0) {
+    poly.exponent3++;
+    num /= 3;
+  }
+  while (num % 5 == 0) {
+    poly.exponent5++;
+    num /= 5;
+  }
+  while (num % 7 == 0) {
+    poly.exponent7++;
+    num /= 7;
+  }
+  while (num % 11 == 0) {
+    poly.exponent11++;
+    num /= 11;
+  }
+
+  if (num == 1) {
+    poly.invocations = getInvocations(poly, isFloat);
+    poly.noOfPrimes = getNoOfPrimes(poly);
+  }
+  else {
+    poly.invocations = INT_MAX;
+    poly.noOfPrimes = INT_MAX;
+  }
+
+  return poly;
+}
+
 std::vector<SizeOptimizer::Polynom> *SizeOptimizer::generatePolys(
-    size_t num, bool isFloat, bool crop) {
+    size_t num, bool isFloat, bool crop, bool useOriginalSize) {
+
   std::vector<Polynom> *result = new std::vector<Polynom>();
+
+  if (useOriginalSize) {
+    Polynom p = SetCorrectValuesToOriginalPolynom(num, isFloat);
+
+    result->push_back(p);
+
+    return result;
+  }
+
   size_t maxPow2 = std::ceil(log(num) * log_2);
   size_t max = std::pow(2, maxPow2);
   size_t maxPow3 = std::ceil(std::log(max) * log_3);
   size_t maxPow5 = std::ceil(std::log(max) * log_5);
   size_t maxPow7 = std::ceil(std::log(max) * log_7);
+  size_t maxPow11 = std::ceil(std::log(max) * log_11);
 
-  for (size_t a = 1; a <= maxPow2; a++) {  // we want at least one multiple of two
+  for (size_t a = 0; a <= maxPow2; a++) {
     for (size_t b = 0; b <= maxPow3; b++) {
       for (size_t c = 0; c <= maxPow5; c++) {
         for (size_t d = 0; d <= maxPow7; d++) {
-          size_t value = std::pow(2, a) * std::pow(3, b)
-            * std::pow(5, c) * std::pow(7, d);
-          bool incCond = !crop && ((value >= num) && (value <= max));
-          bool decrCond = crop && (value <= num);
-          if (incCond || decrCond) {
-            Polynom p;
-            p.value = value;
-            p.exponent2 = a;
-            p.exponent3 = b;
-            p.exponent5 = c;
-            p.exponent7 = d;
-            p.invocations = getInvocations(p, isFloat);
-            p.noOfPrimes = getNoOfPrimes(p);
-            result->push_back(p);
+          for (size_t e = 0; e <= maxPow11; e++) {
+            size_t value = std::pow(2, a) * std::pow(3, b)
+                           * std::pow(5, c) * std::pow(7, d)
+                           * std::pow(11, e);
+
+            if (a == 0) {
+              // we want at least one multiple of two if regular_fft kernel is not induced
+              if ((isFloat && value > V12_REGULAR_MAX_SP) || (!isFloat && value > V12_REGULAR_MAX_DP)) {
+                continue;
+              }
+            }
+
+            bool incCond = !crop && ((value >= num) && (value <= max));
+            bool decrCond = crop && (value <= num);
+            if (incCond || decrCond) {
+              Polynom p;
+              p.value = value;
+              p.exponent2 = a;
+              p.exponent3 = b;
+              p.exponent5 = c;
+              p.exponent7 = d;
+              p.exponent11 = e;
+              p.invocations = getInvocations(p, isFloat);
+              p.noOfPrimes = getNoOfPrimes(p);
+              result->push_back(p);
+            }
           }
         }
       }
@@ -348,8 +562,11 @@ std::set<SizeOptimizer::Polynom, SizeOptimizer::valueComparator>
   // add all polynoms which have a minimal number of kernel invocations
   for (size_t i = 0; i < size; i++) {
     Polynom &tmp = input->at(i);
+    // tmp.invocations -> number of kernel invocations
+    // tmp.noOfPrimes -> number of primes in size factorization
+    //                -> cannot use more than 5 (2, 3, 5, 7, 11)
     if ((tmp.invocations <= (minInv.invocations + 2)) &&
-        (tmp.noOfPrimes <= 4)) {
+        (tmp.noOfPrimes <= 5)) {
       result->insert(tmp);
     }
   }

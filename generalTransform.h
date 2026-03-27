@@ -31,6 +31,15 @@ class GeneralTransform {
   Tristate::Tristate isInPlace;  // otherwise out-of-place
   Tristate::Tristate isReal;     // otherwise C2C
 
+  const int originalX;
+  const int originalY;
+  const int originalZ;
+
+  // number of kernel invocations for selected dimension
+  // the number of kernel invocations is decided separately for each dimension
+  int kernelInvocationX;
+  int kernelInvocationY;
+  int kernelInvocationZ;
 };
 
 }  // namespace cuFFTAdvisor

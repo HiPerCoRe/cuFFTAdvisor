@@ -5,14 +5,19 @@ namespace cuFFTAdvisor {
 void TransformGenerator::generate(int device, int x, int y, int z, int n,
                                   bool isBatched, bool isFloat, bool isForward,
                                   bool isInPlace, Tristate::Tristate isReal,
+                                  int kernelInvocationX,
+                                  int kernelInvocationY,
+                                  int kernelInvocationZ,
                                   std::vector<Transform const *> &result) {
   if (Tristate::FALSE != isReal) {
     result.push_back(new Transform(device, x, y, z, n, isBatched, isFloat,
-                                   isForward, isInPlace, true));
+                                   isForward, isInPlace, true,
+                                   kernelInvocationX, kernelInvocationY, kernelInvocationZ));
   }
   if (Tristate::TRUE != isReal) {
     result.push_back(new Transform(device, x, y, z, n, isBatched, isFloat,
-                                   isForward, isInPlace, false));
+                                   isForward, isInPlace, false,
+                                   kernelInvocationX, kernelInvocationY, kernelInvocationZ));
   }
 }
 
@@ -20,14 +25,17 @@ void TransformGenerator::generate(int device, int x, int y, int z, int n,
                                   bool isBatched, bool isFloat, bool isForward,
                                   Tristate::Tristate isInPlace,
                                   Tristate::Tristate isReal,
+                                  int kernelInvocationX,
+                                  int kernelInvocationY,
+                                  int kernelInvocationZ,
                                   std::vector<Transform const *> &result) {
   if (Tristate::FALSE != isInPlace) {
     generate(device, x, y, z, n, isBatched, isFloat, isForward, true, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
   if (Tristate::TRUE != isInPlace) {
     generate(device, x, y, z, n, isBatched, isFloat, isForward, false, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
 }
 
@@ -36,14 +44,17 @@ void TransformGenerator::generate(int device, int x, int y, int z, int n,
                                   Tristate::Tristate isForward,
                                   Tristate::Tristate isInPlace,
                                   Tristate::Tristate isReal,
+                                  int kernelInvocationX,
+                                  int kernelInvocationY,
+                                  int kernelInvocationZ,
                                   std::vector<Transform const *> &result) {
   if (Tristate::FALSE != isForward) {
     generate(device, x, y, z, n, isBatched, isFloat, true, isInPlace, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
   if (Tristate::TRUE != isForward) {
     generate(device, x, y, z, n, isBatched, isFloat, false, isInPlace, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
 }
 
@@ -52,14 +63,37 @@ void TransformGenerator::generate(int device, int x, int y, int z, int n,
                                   Tristate::Tristate isForward,
                                   Tristate::Tristate isInPlace,
                                   Tristate::Tristate isReal,
+                                  int kernelInvocationX,
+                                  int kernelInvocationY,
+                                  int kernelInvocationZ,
                                   std::vector<Transform const *> &result) {
   if (Tristate::FALSE != isFloat) {
     generate(device, x, y, z, n, isBatched, true, isForward, isInPlace, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
   if (Tristate::TRUE != isFloat) {
     generate(device, x, y, z, n, isBatched, false, isForward, isInPlace, isReal,
-             result);
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
+  }
+}
+
+void TransformGenerator::generate(int device, int x, int y, int z, int n,
+                                  Tristate::Tristate isBatched,
+                                  Tristate::Tristate isFloat,
+                                  Tristate::Tristate isForward,
+                                  Tristate::Tristate isInPlace,
+                                  Tristate::Tristate isReal,
+                                  int kernelInvocationX,
+                                  int kernelInvocationY,
+                                  int kernelInvocationZ,
+                                  std::vector<Transform const *> &result) {
+  if (Tristate::FALSE != isBatched) {
+    generate(device, x, y, z, n, true, isFloat, isForward, isInPlace, isReal,
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
+  }
+  if (Tristate::TRUE != isBatched) {
+    generate(device, x, y, z, n, false, isFloat, isForward, isInPlace, isReal,
+             kernelInvocationX, kernelInvocationY, kernelInvocationZ, result);
   }
 }
 
@@ -70,14 +104,8 @@ void TransformGenerator::generate(int device, int x, int y, int z, int n,
                                   Tristate::Tristate isInPlace,
                                   Tristate::Tristate isReal,
                                   std::vector<Transform const *> &result) {
-  if (Tristate::FALSE != isBatched) {
-    generate(device, x, y, z, n, true, isFloat, isForward, isInPlace, isReal,
-             result);
-  }
-  if (Tristate::TRUE != isBatched) {
-    generate(device, x, y, z, n, false, isFloat, isForward, isInPlace, isReal,
-             result);
-  }
+  generate(device, x, y, z, n, isBatched, isFloat, isForward, isInPlace, isReal,
+             0, 0, 0, result);
 }
 
 void TransformGenerator::transpose(GeneralTransform &tr,

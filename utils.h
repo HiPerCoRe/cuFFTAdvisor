@@ -50,7 +50,7 @@ static inline const char *toString(Tristate t) {
 }  // namespace Tristate
 
 namespace CudaVersion {  // FIXME implement auto detection
-enum CudaVersion { V_8, V_9 };
+enum CudaVersion { V_8, V_9, V_12 };
 }  // namespace CudaVersion
 
 static inline const char *toString(cuFFTAdvisor::Tristate::Tristate t) {
@@ -74,5 +74,9 @@ static inline bool safeEquals(const char *l, const char *r) {
 }
 
 }  // namespace cuFFTAdvisor
+
+const int MaxNumberOfOptimizedDimensions = 3;
+
+const size_t MinimalCountOfUsedConfigurations = 10;
 
 #endif  // CUFFTADVISOR_UTILS_H_
