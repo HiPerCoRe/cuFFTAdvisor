@@ -2,8 +2,7 @@
 
 namespace cuFFTAdvisor {
 
-const struct SizeOptimizer::Polynom SizeOptimizer::UNIT = {
-    .value = 1, 0, 0, 0, 0, 0, 0, 0};
+const struct SizeOptimizer::Polynom SizeOptimizer::UNIT = {1, 0, 0, 0, 0, 0, 0, 0};
 
 SizeOptimizer::SizeOptimizer(CudaVersion::CudaVersion version,
                              GeneralTransform &tr, bool allowTrans)
